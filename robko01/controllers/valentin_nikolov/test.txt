@@ -1,0 +1,43 @@
+
+	__controller_address = 1
+
+	# REGISTERS
+	# Shutsdouwn all the joints.
+	__ShutdownAll = 0
+	# Run joitn until its stops.
+	__RunJoint = 1
+	# Read inputs.
+	__ReadInpust = 2
+	#TODO: Make register 3.
+	# Write to outputs.
+	__WriteOutputs = 4,
+	# Read outputs
+	__ReadOutpusts = 5,
+	# Move joints to coordinate.
+	__MoveJoint = 6,
+	# Reset all joints.
+	__HomeJoints = 7,
+	# Read joint state.
+	__ReadJoint = 8,
+	# Controls all the joints.
+	__MultipleJoint = 9,
+	# Load set point for one single joint.
+	__LoadJointSetpoint = 10,
+	# Run the joints to the setpoint.
+	__RunToSetpoint = 11
+
+
+	def move(self, joint, delay, steps):
+
+		joint = str(joint).zfill(1);
+		delay = str(delay).zfill(4);
+		direction = 0
+		if(steps > 0):
+			direction = 1
+		else:
+			direction = 0
+		steps = str(steps).zfill(4);
+		# Create data packet.
+		command = ':{0}{1}{2}{3}{4}{5}\r\n'.format(str(self.__controller_address).zfill(2), str(self.__MoveJoint).zfill(2), joint, direction, delay, steps)
+		# Send data to the robot.
+		self.__serial_port.write(command)		
