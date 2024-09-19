@@ -65,8 +65,10 @@ class Actions(Enum):
     SaveCurrentPosition = 15
     RunStoredPositions = 17
 
-    UpdateSpeeds = 18
-    UpdateOutputs = 19
+    UpdateAbsolutePositions = 20
+    UpdateRealtivePositions = 21
+    UpdateSpeeds = 22
+    UpdateOutputs = 23
 
-    ClearController = 20
-    ResetController = 21
+    ClearController = 30
+    ResetController = 31
