@@ -63,22 +63,6 @@ class Communicator(BaseCommunicator):
 
 #region Attributes
 
-    __logger = None
-    """Data logger.
-    """
-
-    __host = None
-    """Service host.
-    """
-
-    __port = None
-    """Service port.
-    """
-
-    __client = None
-    """Socket client.
-    """
-
 #endregion
 
 #region Constructor
@@ -90,14 +74,24 @@ class Communicator(BaseCommunicator):
             host (str): IP address or domain of the target.
             port (int): Port of the service. Default is 10182.
         """
-
-        self.__host = host
-        self.__port = port
-
-        self.__client = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
-        self.__client.settimeout(self.timeout)
+        super().__init__()
 
         self.__logger = get_logger(__name__)
+        """Data logger.
+        """
+
+        self.__host = host
+        """Service host.
+        """
+
+        self.__port = port
+        """Service port.
+        """
+
+        self.__client = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+        """Socket client.
+        """
+        self.__client.settimeout(self.timeout)
 
 #endregion
 
