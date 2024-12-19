@@ -81,6 +81,23 @@ python3 -m robko01 --port /dev/cu.usbserial-1110 --task task_ui_qt
  - You need to find out which is the correct port for you by using the device manager.
  - The argument `--task` serves to indicate which program to execute the robot.
 
+## Second run
+Affter First Run you might want try it over the socket so consider to try this one!
+
+ - For Windows machines:
+```sh
+python -m robko01 --port 10182 --host 192.168.1.100 --task task_ui_qt
+```
+ - For Linux machines:
+```sh
+python3 -m robko01 --port 10182 --host 192.168.1.100 --task task_ui_qt
+```
+ - For macOS machines:
+```sh
+python3 -m robko01 --port 10182 --host 192.168.1.100 --task task_ui_qt
+```
+
+
 # Examples
 
 ## Example 1
