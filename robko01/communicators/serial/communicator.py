@@ -67,7 +67,7 @@ class Communicator(BaseCommunicator):
 
 #region Constructor
 
-    def __init__(self, port):
+    def __init__(self, port, baudrate=115200, timeout=1):
         """Constructor
 
         Args:
@@ -80,13 +80,13 @@ class Communicator(BaseCommunicator):
         """Logger
         """
 
-        self.__baudrate = 115200 #921600
-        """Baud rate.
-        """
-
-        self.__client = serial.Serial(port, self.__baudrate)
+        self.__client = serial.Serial(port)
         """Serial port.
         """
+
+        self.__client.baudrate = baudrate
+        self.timeout = timeout
+        self.__client.timeout = self.timeout
 
 #endregion
 

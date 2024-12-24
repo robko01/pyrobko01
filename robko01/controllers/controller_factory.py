@@ -75,6 +75,11 @@ class ControllerFactory:
         if "cname" in kwargs:
             controller_name = kwargs["cname"]
 
+        timeout = 1
+        if "timeout" in kwargs:
+            timeout = kwargs["timeout"]
+            timeout = int(timeout)
+
         if controller_name is None:
             raise ValueError("Controller type can not be None.")
 
@@ -91,12 +96,15 @@ class ControllerFactory:
             if port.isnumeric() and host is not None:
                 host = kwargs["host"]
                 port = int(kwargs["port"])
-                controller = Orko01(IPCom(host, port))
+                controller = Orko01(IPCom(host, port, timeout))
 
             # Serial based.
             elif not port.isnumeric() and host is None:
-                controller_name = kwargs["port"]
-                controller = Orko01(SerCom(controller_name))
+                baudrate = 115200
+                if "baudrate" in kwargs:
+                    baudrate = kwargs["baudrate"]
+                    baudrate = int(baudrate)
+                controller = Orko01(SerCom(controller_name, baudrate, timeout))
 
             else:
                 raise NotImplemented(f"The specified controller controller name does not have implementation: {controller_name}")

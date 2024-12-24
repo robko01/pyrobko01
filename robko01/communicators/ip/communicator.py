@@ -67,7 +67,7 @@ class Communicator(BaseCommunicator):
 
 #region Constructor
 
-    def __init__(self, host, port=10182):
+    def __init__(self, host, port=10182, timeout=1):
         """Constructor
 
         Args:
@@ -87,6 +87,8 @@ class Communicator(BaseCommunicator):
         self.__port = port
         """Service port.
         """
+
+        self.timeout = timeout
 
         self.__client = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
         """Socket client.
