@@ -108,7 +108,7 @@ class GUI(QApplication):
         self.__action_update_timer = ThreadTimer()
         """Action update timer.
         """        
-        self.__action_update_timer.update_rate = 0.005
+        self.__action_update_timer.update_rate = 0.1 # Update time!
         self.__action_update_timer.set_cb(self.__action_timer_cb)
 
         self.__axis_controllers = []
