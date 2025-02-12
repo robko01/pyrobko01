@@ -126,6 +126,12 @@ class Kinematics():
         """
         return 0
 
+    @property
+    def MinDistBody(self):
+        """Minimum distance to body.
+        """
+        return 2.25
+
 #endregion
 
 #region Constructor
@@ -223,7 +229,7 @@ class Kinematics():
         return JPosition(T1=p[0], T2=p[1], T3=p[2], T4=p[3], T5=p[4])
 
     def inverse_from_scale(self, X : float, Y : float, Z : float, P : float, R : float):
-        """Invers kinematics model.
+        """Inverse kinematics model.
 
         Args:
             X (float): X [mm]
@@ -264,7 +270,7 @@ class Kinematics():
             T1 = atan(Y / X)
 
         if X < 0:
-            raise UnreachablePosition("Cen not reach behind base pivot.")
+            raise UnreachablePosition("Can not reach behind base pivot.")
 
         T5 = P + R + self.R1 * T1
         T4 = P - R - self.R1 * T1
