@@ -128,7 +128,7 @@ class GUI(QApplication):
         """        
 
         self.__sc = SteppersCoefficients()
-        """Steppers cofitients.
+        """Steppers coefficients.
         """        
 
         self.__window = None
@@ -141,6 +141,10 @@ class GUI(QApplication):
 
         self.__current_position = [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0]
         """Current end-effector position.
+        """
+
+        self.__target_position = [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0]
+        """Target end-effector position.
         """
 
         self.__axis_states = 0
@@ -622,7 +626,10 @@ class GUI(QApplication):
         if action == Actions.NONE:
             pass
 
-        if action == Actions.UpdateSpeeds:
+        if action == Actions.UpdateAbsolutePositions:
+            self.__controller.move_absolute(self.__target_position)
+
+        elif action == Actions.UpdateSpeeds:
             self.__controller.move_speed(self.__current_speed)
 
         elif action == Actions.UpdateOutputs:
@@ -709,6 +716,48 @@ class GUI(QApplication):
         self.__current_speed[11] = speed
 
         self.__put_action(Actions.UpdateSpeeds)
+
+    def __set_position(self):
+
+        def calc_speeds(steps, speed):
+            speeds = steps
+            max_pos = max(steps)
+
+            if max_pos <= 0:
+                max_pos = 1
+
+            for index, step in enumerate(steps):
+                speeds[index] = (steps[index] * speed) / max_pos
+                speeds[index] = abs(speeds[index])
+                speeds[index] = int(speeds[index])
+            return speeds
+
+        ax0 = self.__window.sbBasePos.value()
+        ax1 = self.__window.sbShoulderPos.value()
+        ax2 = self.__window.sbElbowPos.value()
+        ax3 = self.__window.sbPPos.value()
+        ax4 = self.__window.sbRPos.value()
+        ax5 = self.__window.sbGripperPos.value()
+
+        steps = [ax0, ax1, ax2, ax3, ax4, ax5]
+
+        # Differentials inverse model.
+        q4 = steps[4] + steps[3]
+        q5 = steps[4] - steps[3]
+        steps[3] = q4
+        steps[4] = q5
+
+        # Gripper compensation.
+        # In steps is essayer because
+        # ration between elbow and gripper is 1:1.
+        steps[5] = steps[5] - steps[2]
+        
+        # speeds = calc_speeds(steps, self.__max_speed)
+
+        self.__target_position[0:12:2] = steps
+        self.__target_position[1:12:2] = [self.__max_speed]*6 # speeds
+
+        self.__put_action(Actions.UpdateAbsolutePositions)
 
 #endregion
 
@@ -870,6 +919,14 @@ class GUI(QApplication):
         self.__window.btnGripperOpen.released.connect(self.__axis_controllers[5].stop)
         self.__window.btnGripperClose.pressed.connect(self.__axis_controllers[5].set_ccw)
         self.__window.btnGripperClose.released.connect(self.__axis_controllers[5].stop)
+
+        # Manual Positioning Control
+        self.__window.btnBasePos.clicked.connect(self.__set_position)
+        self.__window.btnShoulderPos.clicked.connect(self.__set_position)
+        self.__window.btnElbowPos.clicked.connect(self.__set_position)
+        self.__window.btnPPos.clicked.connect(self.__set_position)
+        self.__window.btnRPos.clicked.connect(self.__set_position)
+        self.__window.btnGripperPos.clicked.connect(self.__set_position)
 
         # Hold buttons for PORT A
         self.__window.btnOut0.pressed.connect(lambda: self.__window.cbOut0.setChecked(True))
