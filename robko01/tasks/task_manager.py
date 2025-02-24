@@ -3,7 +3,7 @@
 
 """
 
-Robko 01 - Python Controloftware
+Robko 01 - Python Control Software
 
 Copyright (C) [2020] [Orlin Dimitrov]
 
