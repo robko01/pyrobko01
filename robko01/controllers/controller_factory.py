@@ -23,7 +23,7 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 """
 
 from robko01.communicators.serial.communicator import Communicator as SerCom
-from robko01.communicators.ip.communicator import Communicator as IPCom
+from robko01.communicators.tcp.communicator import Communicator as IPCom
 from robko01.controllers.orlin369.robko01 import Robko01 as Orko01
 
 from robko01.controllers.tu_gabrovo.protocol.package_manager import PackageManager as GabkoPM
