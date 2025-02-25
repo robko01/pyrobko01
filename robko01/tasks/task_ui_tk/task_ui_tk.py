@@ -64,8 +64,7 @@ class TaskUI(BaseTask):
 
 #region Attributes
 
-    __logger = None
-    """Logger"""
+
 
 #endregion
 
@@ -76,6 +75,10 @@ class TaskUI(BaseTask):
         super().__init__(kwargs)
 
         self._name = __class_name__
+
+        self.__logger = None
+        """Logger
+        """
 
 #endregion
 
