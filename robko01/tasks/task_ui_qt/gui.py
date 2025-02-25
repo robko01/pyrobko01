@@ -900,9 +900,9 @@ class GUI(QApplication):
         self.__window.btnShoulderDown.pressed.connect(self.__axis_controllers[1].set_ccw)
         self.__window.btnShoulderDown.released.connect(self.__axis_controllers[1].stop)
 
-        self.__window.btnElbowUp.pressed.connect(self.__axis_controllers[2].set_cw)
+        self.__window.btnElbowUp.pressed.connect(self.__axis_controllers[2].set_ccw)
         self.__window.btnElbowUp.released.connect(self.__axis_controllers[2].stop)
-        self.__window.btnElbowDown.pressed.connect(self.__axis_controllers[2].set_ccw)
+        self.__window.btnElbowDown.pressed.connect(self.__axis_controllers[2].set_cw)
         self.__window.btnElbowDown.released.connect(self.__axis_controllers[2].stop)
 
         self.__window.btnPUp.pressed.connect(self.__btnPUp_pressed)
