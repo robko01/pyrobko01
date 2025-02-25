@@ -23,7 +23,8 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 """
 
 from robko01.communicators.serial.communicator import Communicator as SerCom
-from robko01.communicators.tcp.communicator import Communicator as IPCom
+from robko01.communicators.tcp.communicator import Communicator as TCPCom
+from robko01.communicators.udp.communicator import Communicator as UDPCom
 from robko01.controllers.orlin369.robko01 import Robko01 as Orko01
 
 from robko01.controllers.tu_gabrovo.protocol.package_manager import PackageManager as GabkoPM
@@ -69,45 +70,41 @@ class ControllerFactory:
         Returns:
             Any: Instance of controller.
         """
+        timout = 1
         controller = None
-
         controller_name = None
+        com_type = None
+        communicator = None
+
         if "cname" in kwargs:
             controller_name = kwargs["cname"]
 
-        timeout = 1
+        if "com_type" in kwargs:
+            com_type = kwargs["com_type"]
+
         if "timeout" in kwargs:
             timeout = kwargs["timeout"]
-            timeout = int(timeout)
+
+        if com_type is None:
+            raise ValueError("Communication type can not be None.")
+
+        elif com_type == "serial":
+            if not kwargs["port"].isnumeric() and kwargs["host"] is None:
+                communicator = SerCom(kwargs["port"], timeout=timeout)          
+        elif com_type == "tcp":
+            if kwargs["port"].isnumeric() and kwargs["host"] is not None:
+                communicator = TCPCom(kwargs["host"], int(kwargs["port"]), timeout=timeout)
+        elif com_type == "udp":
+            if kwargs["port"].isnumeric() and kwargs["host"] is not None:
+                communicator = UDPCom(kwargs["host"], int(kwargs["port"]), timeout=timeout)
+        else:
+            raise ValueError(f"Communication type is not supproted: {com_type}")
 
         if controller_name is None:
             raise ValueError("Controller type can not be None.")
 
         elif controller_name == "orlin369":
-            port = ""
-            if "port" in kwargs:
-                port = kwargs["port"]
-
-            host = None
-            if "host" in kwargs:
-                host = kwargs["host"]
-
-            # IP Based
-            if port.isnumeric() and host is not None:
-                host = kwargs["host"]
-                port = int(kwargs["port"])
-                controller = Orko01(IPCom(host, port, timeout))
-
-            # Serial based.
-            elif not port.isnumeric() and host is None:
-                baudrate = 115200
-                if "baudrate" in kwargs:
-                    baudrate = kwargs["baudrate"]
-                    baudrate = int(baudrate)
-                controller = Orko01(SerCom(controller_name, baudrate, timeout))
-
-            else:
-                raise NotImplemented(f"The specified controller controller name does not have implementation: {controller_name}")
+            controller = Orko01(communicator)
 
         elif controller_name == "tugab":
             controller = Gabko01(GabkoPM(kwargs))
