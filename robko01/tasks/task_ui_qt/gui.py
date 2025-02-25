@@ -915,9 +915,9 @@ class GUI(QApplication):
         self.__window.btnRCCW.pressed.connect(self.__btnRCCW_pressed)
         self.__window.btnRCCW.released.connect(self.__diff_stop)
 
-        self.__window.btnGripperOpen.pressed.connect(self.__axis_controllers[5].set_cw)
+        self.__window.btnGripperOpen.pressed.connect(self.__axis_controllers[5].set_ccw)
         self.__window.btnGripperOpen.released.connect(self.__axis_controllers[5].stop)
-        self.__window.btnGripperClose.pressed.connect(self.__axis_controllers[5].set_ccw)
+        self.__window.btnGripperClose.pressed.connect(self.__axis_controllers[5].set_cw)
         self.__window.btnGripperClose.released.connect(self.__axis_controllers[5].stop)
 
         # Manual Positioning Control
