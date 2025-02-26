@@ -144,9 +144,6 @@ for position in trajectory:
     controller.move_relative(current_point)
     current_point = controller.current_position()
 
-# Wait the controller to end its last movement.
-controller.wait_to_stop()
-
 ```
 
 ## Uninstall the library
