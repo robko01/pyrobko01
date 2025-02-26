@@ -137,7 +137,10 @@ class TaskGrasp2(BaseTask):
             self.__logger.debug("Reach: {}".format(current_point))
             self.__logger.debug("")
 
-        self._controller.wait_to_stop()
+        response = self._controller.is_moving()
+
+        while response != 0:
+            response = self._controller.is_moving()
 
         self.__logger.debug("End")
 
