@@ -107,9 +107,9 @@ class GUI(QApplication):
 
         self.__action_update_timer = ThreadTimer()
         """Action update timer.
-        """        
-        self.__action_update_timer.update_rate = 0.1 # Update time!
-        self.__action_update_timer.set_cb(self.__action_timer_cb)
+        """
+
+        self.__init_action_timer()
 
         self.__axis_controllers = []
         """Axis controllers.
@@ -616,6 +616,10 @@ class GUI(QApplication):
 #endregion
 
 #region Private Methods (Action Control)
+
+    def __init_action_timer(self):
+        self.__action_update_timer.update_rate = 0.1 # Update time!
+        self.__action_update_timer.set_cb(self.__action_timer_cb)
 
     def __put_action(self, action):
 
