@@ -48,7 +48,7 @@ python -m pip install setuptools
 ```
 
  - Unzip the downloaded repo.
- - Navigate to the unziped folder in terminal.
+ - Navigate to the unzipped folder in terminal.
  - Install the package
 ```sh
 python setup.py install
