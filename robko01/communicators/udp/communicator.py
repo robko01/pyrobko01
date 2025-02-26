@@ -108,10 +108,10 @@ class Communicator(BaseCommunicator):
 
         for data in frame:
             if index < length - 1:
-                buffer += "{:02X}, ".format(data)
+                buffer += f"{data:02X}, "
 
             else:
-                buffer += "{:02X}".format(data)
+                buffer += f"{data:02X}"
 
             index += 1
 
@@ -133,7 +133,8 @@ class Communicator(BaseCommunicator):
     def receive(self):
         """Receive the frame."""
 
-        frame = self.__client.recvfrom(1024)
+        response = self.__client.recvfrom(1024)
+        frame = response[0]
 
         msg = "RX <- {}".format(self.__make_buffer(frame))
         self.__logger.debug(msg)
