@@ -90,11 +90,11 @@ python -m robko01 --interface tcp --port 10182 --host 192.168.1.100 --timeout 10
 ```
  - For Linux machines:
 ```sh
-python3 -m robko01 --interface tcp--port 10182 --host 192.168.1.100 --timeout 10 --task task_ui_qt
+python3 -m robko01 --interface tcp --port 10182 --host 192.168.1.100 --timeout 10 --task task_ui_qt
 ```
  - For macOS machines:
 ```sh
-python3 -m robko01 --interface tcp--port 10182 --host 192.168.1.100 --timeout 10 --task task_ui_qt
+python3 -m robko01 --interface tcp --port 10182 --host 192.168.1.100 --timeout 10 --task task_ui_qt
 ```
 
 
@@ -118,7 +118,7 @@ port = "COM1" # You should change it according to your setup.
 cname = "orlin369"
 
 # Controller
-controller = ControllerFactory.create(port=port, cname=cname)
+controller = ControllerFactory.create(interface="serial" port=port, cname=cname)
 
 # Set the speed.
 speed = 150
@@ -147,7 +147,7 @@ for position in trajectory:
 ```
 
 ## Uninstall the library
-In case you would like to remove the library use the fllowing command.
+In case you would like to remove the library use the following command.
 
  - For Windows machines:
 ```sh
