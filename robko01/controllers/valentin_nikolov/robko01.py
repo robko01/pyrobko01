@@ -99,16 +99,6 @@ class Robko01(BaseRobko01):
 
         return
 
-    def wait_to_stop(self):
-        """Wait robot to stop moving.
-        """
-        response = self.is_moving()
-
-        while response != 0:
-            response = self.is_moving()
-
-            time.sleep(self._sync_interval)
-
     def ping(self, payload):
         """Ping the robot controller.
 
