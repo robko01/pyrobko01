@@ -60,20 +60,20 @@ After installation, the script is ready for operation. This happens in the follo
 
  - For Windows machines:
 ```sh
-python -m robko01 --port COM<NUMBER> --task task_ui_qt
+python -m robko01 --interface serial --port COM<NUMBER> --task task_ui_qt
 ```
 or
 ```sh
-python -m robko01 --port COM<NUMBER> --task task_ui_tk
+python -m robko01 --interface serial --port COM<NUMBER> --task task_ui_tk
 ```
 
  - For Linux machines:
 ```sh
-python3 -m robko01 --port /dev/ttyUSB<NUMBER> --task task_ui_qt
+python3 -m robko01 --interface serial --port /dev/ttyUSB<NUMBER> --task task_ui_qt
 ```
  - For macOS machines:
 ```sh
-python3 -m robko01 --port /dev/cu.usbserial-1110 --task task_ui_qt
+python3 -m robko01 --interface serial --port /dev/cu.usbserial-1110 --task task_ui_qt
 ```
 
  - To approach the robot, it will be presented to the computer as a serial port.
@@ -86,15 +86,15 @@ Affter First Run you might want try it over the socket so consider to try this o
 
  - For Windows machines:
 ```sh
-python -m robko01 --port 10182 --host 192.168.1.100 --task task_ui_qt
+python -m robko01 --interface tcp --port 10182 --host 192.168.1.100 --timeout 10 --task task_ui_qt
 ```
  - For Linux machines:
 ```sh
-python3 -m robko01 --port 10182 --host 192.168.1.100 --task task_ui_qt
+python3 -m robko01 --interface tcp--port 10182 --host 192.168.1.100 --timeout 10 --task task_ui_qt
 ```
  - For macOS machines:
 ```sh
-python3 -m robko01 --port 10182 --host 192.168.1.100 --task task_ui_qt
+python3 -m robko01 --interface tcp--port 10182 --host 192.168.1.100 --timeout 10 --task task_ui_qt
 ```
 
 
