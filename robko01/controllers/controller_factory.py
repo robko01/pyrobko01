@@ -73,33 +73,33 @@ class ControllerFactory:
         timeout = 1
         controller = None
         controller_name = None
-        com_type = None
+        interface = None
         communicator = None
 
         if "cname" in kwargs:
             controller_name = kwargs["cname"]
 
-        if "com_type" in kwargs:
-            com_type = kwargs["com_type"]
+        if "interface" in kwargs:
+            interface = kwargs["interface"]
 
         if "timeout" in kwargs:
             timeout = kwargs["timeout"]
             timeout = int(timeout)
 
-        if com_type is None:
+        if interface is None:
             raise ValueError("Communication type can not be None.")
 
-        elif com_type == "serial":
+        elif interface == "serial":
             if not kwargs["port"].isnumeric() and kwargs["host"] is None:
                 communicator = SerCom(kwargs["port"], timeout=timeout)          
-        elif com_type == "tcp":
+        elif interface == "tcp":
             if kwargs["port"].isnumeric() and kwargs["host"] is not None:
                 communicator = TCPCom(kwargs["host"], int(kwargs["port"]), timeout=timeout)
-        elif com_type == "udp":
+        elif interface == "udp":
             if kwargs["port"].isnumeric() and kwargs["host"] is not None:
                 communicator = UDPCom(kwargs["host"], int(kwargs["port"]), timeout=timeout)
         else:
-            raise ValueError(f"Communication type is not supproted: {com_type}")
+            raise ValueError(f"Communication type is not supported: {interface}")
 
         if controller_name is None:
             raise ValueError("Controller type can not be None.")
