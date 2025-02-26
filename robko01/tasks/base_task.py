@@ -22,6 +22,8 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
 """
 
+from robko01.utils.logger import get_logger
+
 #region File Attributes
 
 __author__ = "Orlin Dimitrov"
@@ -80,6 +82,10 @@ class BaseTask:
         """Key words arguments.
         """
 
+        self.__logger = get_logger(__name__)
+        """Data logger.
+        """
+
         self._controller = None
         """Controller
         """
@@ -114,17 +120,19 @@ class BaseTask:
         self._stop_flag = False
 
         if self._controller is not None:
+            while True:
+                try:
+                    self._controller.connect()
 
-            self._controller.connect()
+                    # Enable the motors.
+                    self._controller.enable()
 
-            # Enter synchronous mode.
-            self._controller.synchronous = True
+                    # Stop reconnect cycle.
+                    break
 
-            # Wait for controller to respond.
-            self._controller.wait_for_controller()
-
-            # Enable the motors.
-            self._controller.enable()
+                except Exception as exc:
+                    self.__logger.error(exc)
+                    continue
 
     def _stop_cont(self):
         """Stop the app.

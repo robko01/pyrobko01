@@ -97,38 +97,7 @@ class Robko01(BaseRobko01):
         """
         self.__communicator.disconnect()
 
-    def wait_for_controller(self):
-        """Wait for robot controller to become active.
-        """
-        response = None
-
-        self.__communicator.reset()
-
-        payload = [48, 48, 48, 48, 48, 48, 48, 48]
-        times = 0
-        while True:
-            response = self.ping(payload)
-            if response.is_valid():
-                if response.payload_is(payload):
-                    break
-
-            times += 1
-            if times > self._timeout:
-                raise TimeoutError("Controller does not respond.")
-
-            time.sleep(self._sync_interval)
-
-        return response
-
-    def wait_to_stop(self):
-        """Wait robot to stop moving.
-        """
-        response = self.is_moving()
-
-        while response != 0:
-            response = self.is_moving()
-
-            time.sleep(self._sync_interval)
+        return
 
     def ping(self, payload):
         """Ping the robot controller.
@@ -342,9 +311,6 @@ class Robko01(BaseRobko01):
             else:
                 raise InvalidPackage("Invalid package.")
 
-        if self.synchronous:
-            self.wait_to_stop()
-
         return response
 
     def move_absolute(self, current_point):
@@ -394,9 +360,6 @@ class Robko01(BaseRobko01):
 
 
             time.sleep(self._sync_interval)
-
-        if self.synchronous:
-            self.wait_to_stop()
 
         return response
 
@@ -610,9 +573,6 @@ class Robko01(BaseRobko01):
                 raise InvalidPackage("Invalid package.")
 
             time.sleep(self._sync_interval)
-
-        # if self.synchronous:
-        #     self.wait_to_stop()
 
         return response
 

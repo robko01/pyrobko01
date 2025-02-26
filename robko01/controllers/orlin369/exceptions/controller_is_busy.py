@@ -22,6 +22,8 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
 """
 
+# SUPER - Small Unified Protocol for Extendable Robots
+
 #region File Attributes
 
 __author__ = "Orlin Dimitrov"
@@ -51,44 +53,7 @@ __status__ = "Debug"
 
 #endregion
 
-class BaseRobko01:
-    """Some description that tells you it's abstract,
-    often listing the methods you're expected to supply."""
-
-#region Attributes
-
-#endregion
-
-#region Constructor
-
-    def __init__(self):
-        self._sync_interval = 0.05
-        """Sync time.
-        """
-
-        self._time_to_stop = False
-        """Time to stop flag.
-        """
-
-        self._communicator = None
-        """Communicator instance.
-        """
-
-        self._timeout = 50
-        """Timeout value.
-        """
-
-#endregion
-
-#region Properties
-
-    @property
-    def time_to_stop(self):
-        """Time to stop.
-
-        Returns:
-            float: Time to stop.
-        """
-        return self._time_to_stop
-
-#endregion
+class ControllerIsBusy(Exception):
+    """Controller is busy.
+    """
+    pass
