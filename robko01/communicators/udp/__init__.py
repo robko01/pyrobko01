@@ -22,14 +22,6 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
 """
 
-import time
-import threading
-
-from robko01.tasks.base_task import BaseTask
-from robko01.tasks.task_ui_tk.ui import GUI
-
-from robko01.utils.logger import get_logger
-
 #region File Attributes
 
 __author__ = "Orlin Dimitrov"
@@ -54,49 +46,7 @@ __maintainer__ = "Orlin Dimitrov"
 __email__ = "robko01@8bitclub.com"
 """E-mail of the author."""
 
-__class_name__ = "TaskUI"
-"""Task name."""
-
-#endregion
-
-class TaskUI(BaseTask):
-    """UI tool."""
-
-#region Attributes
-
-
-
-#endregion
-
-#region Constructor
-
-    def __init__(self, **kwargs):
-
-        super().__init__(kwargs)
-
-        self._name = __class_name__
-
-        self.__logger = None
-        """Logger
-        """
-
-#endregion
-
-#region Interface Methods
-
-    def start(self):
-        """Start the task."""
-
-        if self.__logger is None:
-            self.__logger = get_logger(__name__)
-
-        self._start_cont()
-
-        self.__ui = GUI(controller=self._controller)
-        self.__ui.start()
-
-    def stop(self):
-
-        self.__ui.stop()
+__status__ = "Debug"
+"""File status."""
 
 #endregion
