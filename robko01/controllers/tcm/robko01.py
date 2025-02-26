@@ -338,9 +338,6 @@ class Robko01(BaseRobko01):
             else:
                 raise InvalidPackage("Invalid package.")
 
-        if self.synchronous:
-            self.wait_to_stop()
-
         return response
 
     def move_absolute(self, current_point):

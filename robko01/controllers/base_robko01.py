@@ -66,10 +66,6 @@ class BaseRobko01:
         """Sync time.
         """
 
-        self._synchronous = True
-        """Sync mode.
-        """
-
         self._time_to_stop = False
         """Time to stop flag.
         """
@@ -94,23 +90,5 @@ class BaseRobko01:
             float: Time to stop.
         """
         return self._time_to_stop
-
-    @property
-    def synchronous(self):
-        """Returns Host URL of the service.
-
-        Returns:
-            str: Host URL of the service.
-        """
-        return self._synchronous
-
-    @synchronous.setter
-    def synchronous(self, synchronous):
-        """Set Host URL of the service.
-
-        Args:
-            synchronous (str): Host URL of the service.
-        """
-        self._synchronous = synchronous
 
 #endregion
