@@ -70,7 +70,7 @@ class ControllerFactory:
         Returns:
             Any: Instance of controller.
         """
-        timout = 1
+        timeout = 1
         controller = None
         controller_name = None
         com_type = None
@@ -84,6 +84,7 @@ class ControllerFactory:
 
         if "timeout" in kwargs:
             timeout = kwargs["timeout"]
+            timeout = int(timeout)
 
         if com_type is None:
             raise ValueError("Communication type can not be None.")
