@@ -124,9 +124,6 @@ class BaseTask:
                 try:
                     self._controller.connect()
 
-                    # Wait for controller to respond.
-                    self._controller.wait_for_controller()
-
                     # Enable the motors.
                     self._controller.enable()
 

@@ -124,25 +124,6 @@ class Robko01(BaseRobko01):
 
         self.__communicator.disconnect()
 
-    def wait_for_controller(self):
-        """WAit for robot controller to become active."""
-
-        response = None
-
-        times = 0
-        while True:
-            response = self.get_revision()
-            if response:
-                break
-
-            times += 1
-            if times > self.timeout:
-                raise TimeoutError("Controller does not respond.")
-
-            time.sleep(self._sync_interval)
-
-        return response
-
     # Get revision of the board.
     def get_revision(self):
         command = "?RV"
