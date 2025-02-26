@@ -342,9 +342,6 @@ class Robko01(BaseRobko01):
             else:
                 raise InvalidPackage("Invalid package.")
 
-        if self.synchronous:
-            self.wait_to_stop()
-
         return response
 
     def move_absolute(self, current_point):
@@ -394,9 +391,6 @@ class Robko01(BaseRobko01):
 
 
             time.sleep(self._sync_interval)
-
-        if self.synchronous:
-            self.wait_to_stop()
 
         return response
 
@@ -610,9 +604,6 @@ class Robko01(BaseRobko01):
                 raise InvalidPackage("Invalid package.")
 
             time.sleep(self._sync_interval)
-
-        # if self.synchronous:
-        #     self.wait_to_stop()
 
         return response
 
