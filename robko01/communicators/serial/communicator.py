@@ -141,7 +141,7 @@ class Communicator(BaseCommunicator):
             time.sleep(wait)
 
             if times > self.timeout:
-                raise TimeoutError("Time out has ocurred in Communicator.")
+                raise TimeoutError("Time out has occurred in Communicator.")
 
         msg = "RX <- {}".format(self.__make_buffer(frame))
         self.__logger.debug(msg)
@@ -167,11 +167,11 @@ class Communicator(BaseCommunicator):
     def connect(self):
         """Connect to the device.
         """
-        if self.__client.isOpen() is False:
-
+        is_open = self.__client.isOpen()
+        if is_open == False:
             self.__client.timeout = self.timeout
-            self.__client.setDTR(False)
-            self.__client.setRTS(False)
+            # self.__client.setDTR(False)
+            # self.__client.setRTS(False)
             self.__client.open()
 
     def disconnect(self):
@@ -179,13 +179,15 @@ class Communicator(BaseCommunicator):
         """
         if self.__client.isOpen() is True:
 
-            self.__client.setDTR(False)
-            self.__client.setRTS(False)
+            # self.__client.setDTR(False)
+            # self.__client.setRTS(False)
             self.__client.close()
 
     def reset(self):
         """Reset target device.
         """
+
+        return
         if self.__client.isOpen() is False:
             raise Exception("Port is not opened on level Communicator.")
 
