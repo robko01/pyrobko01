@@ -90,7 +90,7 @@ class ControllerFactory:
             raise ValueError("Communication type can not be None.")
 
         elif interface == "serial":
-            if not kwargs["port"].isnumeric() and kwargs["host"] is None:
+            if not kwargs["port"].isnumeric():
                 communicator = SerCom(kwargs["port"], timeout=timeout)          
         elif interface == "tcp":
             if kwargs["port"].isnumeric() and kwargs["host"] is not None:
