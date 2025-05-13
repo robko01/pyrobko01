@@ -99,7 +99,9 @@ class Robko01(BaseRobko01):
     def connect(self):
         """Connect to the robot controller.
         """
+        time.sleep(1.0)
         self.__communicator.connect()
+        time.sleep(1.0)
 
     def disconnect(self):
         """Disconnect from robot controller.
