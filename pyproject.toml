@@ -1,0 +1,48 @@
+[build-system]
+requires = ["setuptools>=42", "wheel"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "robko01"
+version = "1.0.0"
+description = "Robko 01 control library."
+readme = "README.md"
+requires-python = ">=3.7"
+license = { text = "GPL-3.0-or-later" }
+authors = [
+    { name = "Orlin Dimitrov", email = "robko01@8bitclub.com" }
+]
+keywords = ["robot", "robko01", "control"]
+classifiers = [
+    "Development Status :: 1 - Planning",
+    "Environment :: Console",
+    "Intended Audience :: Developers",
+    "License :: OSI Approved :: GNU General Public License v3 (GPLv3)",
+    "Programming Language :: Python",
+    "Programming Language :: Python :: 3 :: Only",
+    "Topic :: Software Development",
+    "Topic :: Robot Programming"
+]
+dependencies = [
+    "pygame",
+    "pyserial",
+    "PySide6",
+    "PySide6-Addons",
+    "PySide6-Essentials",
+    "shiboken6"
+]
+
+[project.urls]
+GitHub = "https://github.com/robko01/pyrobko01"
+
+[project.scripts]
+robko01 = "robko01.__main__:main"
+
+[tool.setuptools]
+include-package-data = true
+
+[tool.setuptools.packages.find]
+include = ["robko01", "robko01.*"]
+
+[tool.setuptools.package-data]
+"robko01.tasks.task_ui_qt.ui" = ["*.ui"]
