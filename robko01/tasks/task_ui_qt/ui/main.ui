@@ -1189,7 +1189,7 @@
     <bool>false</bool>
    </property>
    <property name="text">
-    <string>Enable Keyboard Controll</string>
+    <string>Enable Keyboard Control</string>
    </property>
   </action>
   <action name="actionEnable_Joystick_Controll">
@@ -1197,7 +1197,7 @@
     <bool>true</bool>
    </property>
    <property name="text">
-    <string>Enable Joystic Controll</string>
+    <string>Enable Joystic Control</string>
    </property>
   </action>
   <action name="actionAbout">
