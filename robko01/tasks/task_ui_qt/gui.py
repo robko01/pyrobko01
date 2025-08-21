@@ -23,6 +23,7 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
 """
 
+import sys
 import os
 import queue
 import traceback
@@ -30,6 +31,8 @@ import traceback
 from robko01.kinematics.data.steppers_coefficients import SteppersCoefficients
 from robko01.kinematics.kinematics import Kinematics
 from robko01.kinematics.utils.utils import xy2lr
+
+from robko01.utils.stream_redirector import StreamRedirector
 from robko01.utils.thread_timer import ThreadTimer
 from robko01.utils.logger import get_logger
 from robko01.utils.axis_action_controller import AxisActionController
@@ -38,7 +41,7 @@ from robko01.utils.utils import scale
 from robko01.joystick.joystick import JoystickController
 
 from PySide6.QtUiTools import QUiLoader
-from PySide6.QtWidgets import QApplication, QMessageBox
+from PySide6.QtWidgets import QApplication, QMessageBox, QFileDialog
 from PySide6.QtCore import QEvent, QObject, Qt
 
 import serial
@@ -239,7 +242,7 @@ class GUI(QApplication):
 
     def __update_displays_animation(self):
 
-        # Updat if it si different to prevent flicking.
+        # Update if it si different to prevent flicking.
         if self.__axis_states == self.__axis_states_prev:
             return
         self.__axis_states = self.__axis_states_prev
@@ -596,7 +599,7 @@ class GUI(QApplication):
 
 #endregion
 
-#region Private Methods (Automaton)
+#region Private Methods (Automatic Control)
 
     def __init_automation(self):
 
@@ -612,6 +615,56 @@ class GUI(QApplication):
         # if (2 & self.__port_a_inputs):
         #     if self.__axis_controllers[5].direction == -1:
         #         self.__axis_controllers[5].stop()
+
+    def __output_func(self, message):
+        self.__window.teResult.setText(f"{message}")
+
+    def __move_j(self, a1,a2,a3,a4,a5,a6):
+        self.__target_position[0:12:2] = [a1,a2,a3,a4,a5,a6]
+        self.__target_position[1:12:2] = [self.__max_speed]*6 # speeds
+
+        self.__put_action(Actions.UpdateAbsolutePositions)
+
+    def __load_script(self):
+        file_dialog = QFileDialog(self.__window)
+        script_path, _ = file_dialog.getOpenFileName(self.__window, "Load Python Script", "", "Python Files (*.py)")
+        if script_path:
+            self.__window.teCode.setPlainText("")
+            with open(script_path, 'r') as file:
+                script_content = file.read()
+            self.__window.teCode.setPlainText(script_content)
+            self.__window.teResult.setPlainText("")
+
+    def __run_automatic_script(self):
+        # Lock the UI.
+        self.__window.teCode.setEnabled(False)
+        self.__window.pbLoadProgram.setEnabled(False)
+        self.__window.pbRunProgram.setEnabled(False)
+
+        # Redirect STDOUT
+        self.__original_stdout = sys.stdout
+        sys.stdout = StreamRedirector(self.__window.teResult)
+
+        try:
+            code = compile(self.__window.teCode.toPlainText(), ".", 'exec')
+            exec(code,
+                 {
+                     '__name__': '__main__',
+                     '__file__': "main.py",
+                     'output': self.__output_func,
+                     "move_j": self.__move_j
+                     })
+        except Exception as exception:
+            self.__window.teResult.setText(str(exception))
+
+        # Redirect STDOUT
+        sys.stdout = self.__original_stdout
+
+        # Unlock the UI.
+        self.__window.teCode.setEnabled(True)
+        self.__window.pbLoadProgram.setEnabled(True)
+        self.__window.pbRunProgram.setEnabled(True)
+
 
 #endregion
 
@@ -964,21 +1017,10 @@ class GUI(QApplication):
         self.__window.sldSpeed.valueChanged.connect(self.__sldSpeed_valueChanged)
 
         # Automatic
-        def cb_run():
-            import parser
-
-            try:
-                st = parser.expr(self.__window.teCode.toPlainText())
-                code = st.compile()
-                a = 5
-                result = eval(code)
-                result = str(result)
-                self.__window.teResult.setText(result)
-            except Exception as exception:
-                self.__window.teResult.setText(str(exception))
-
-        self.__window.pbRun.pressed.connect(cb_run)
-
+        self.__window.teResult.setReadOnly(True)
+        self.__window.pbRunProgram.pressed.connect(self.__run_automatic_script)
+        self.__window.pbLoadProgram.pressed.connect(self.__load_script)
+        
         # Show the UI.
         self.__window.show()
 
@@ -992,9 +1034,9 @@ class GUI(QApplication):
 
         self.__init_automation()
 
-        self.__action_update_timer.start()
-
         self.__init_form()
+
+        self.__action_update_timer.start()
 
     def stop(self):
         """Stop
