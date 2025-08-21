@@ -6,8 +6,8 @@
    <rect>
     <x>0</x>
     <y>0</y>
-    <width>782</width>
-    <height>589</height>
+    <width>1148</width>
+    <height>744</height>
    </rect>
   </property>
   <property name="windowTitle">
@@ -25,8 +25,8 @@
         <rect>
          <x>0</x>
          <y>0</y>
-         <width>745</width>
-         <height>552</height>
+         <width>1128</width>
+         <height>683</height>
         </rect>
        </property>
        <layout class="QGridLayout" name="gridLayout_2">
@@ -1070,55 +1070,93 @@
            <attribute name="title">
             <string>Automatic</string>
            </attribute>
-           <widget class="QWidget" name="gridLayoutWidget">
-            <property name="geometry">
-             <rect>
-              <x>10</x>
-              <y>10</y>
-              <width>721</width>
-              <height>471</height>
-             </rect>
-            </property>
-            <layout class="QGridLayout" name="gridLayout_5">
-             <item row="1" column="0" rowspan="5">
-              <widget class="QTextEdit" name="teCode">
-               <property name="placeholderText">
-                <string/>
-               </property>
-              </widget>
-             </item>
-             <item row="6" column="0">
-              <widget class="QTextEdit" name="teResult"/>
-             </item>
-             <item row="5" column="1" rowspan="2">
-              <spacer name="verticalSpacer">
-               <property name="orientation">
-                <enum>Qt::Vertical</enum>
-               </property>
-               <property name="sizeHint" stdset="0">
-                <size>
-                 <width>20</width>
-                 <height>40</height>
-                </size>
-               </property>
-              </spacer>
-             </item>
-             <item row="1" column="1">
-              <widget class="QPushButton" name="pbLoadProgram">
-               <property name="text">
-                <string>LOAD</string>
-               </property>
-              </widget>
-             </item>
-             <item row="2" column="1">
-              <widget class="QPushButton" name="pbRunProgram">
-               <property name="text">
-                <string>RUN</string>
-               </property>
-              </widget>
-             </item>
-            </layout>
-           </widget>
+           <layout class="QGridLayout" name="gridLayout_5">
+            <item row="10" column="0">
+             <widget class="QTextEdit" name="teResult"/>
+            </item>
+            <item row="4" column="1">
+             <widget class="QPushButton" name="pbRunProgram">
+              <property name="text">
+               <string>RUN</string>
+              </property>
+             </widget>
+            </item>
+            <item row="1" column="0" rowspan="9">
+             <widget class="QTextEdit" name="teCode">
+              <property name="placeholderText">
+               <string/>
+              </property>
+             </widget>
+            </item>
+            <item row="9" column="1">
+             <spacer name="verticalSpacer">
+              <property name="orientation">
+               <enum>Qt::Vertical</enum>
+              </property>
+              <property name="sizeHint" stdset="0">
+               <size>
+                <width>20</width>
+                <height>40</height>
+               </size>
+              </property>
+             </spacer>
+            </item>
+            <item row="10" column="1">
+             <spacer name="verticalSpacer_2">
+              <property name="orientation">
+               <enum>Qt::Vertical</enum>
+              </property>
+              <property name="sizeHint" stdset="0">
+               <size>
+                <width>20</width>
+                <height>40</height>
+               </size>
+              </property>
+             </spacer>
+            </item>
+            <item row="2" column="1">
+             <widget class="QPushButton" name="pbLoadProgram">
+              <property name="text">
+               <string>LOAD</string>
+              </property>
+             </widget>
+            </item>
+            <item row="7" column="1">
+             <widget class="QPushButton" name="pbContinueProgram">
+              <property name="text">
+               <string>CONTINUE</string>
+              </property>
+             </widget>
+            </item>
+            <item row="3" column="1">
+             <widget class="QPushButton" name="pbSaveProgram">
+              <property name="text">
+               <string>SAVE</string>
+              </property>
+             </widget>
+            </item>
+            <item row="5" column="1">
+             <widget class="QPushButton" name="pbStopProgram">
+              <property name="text">
+               <string>STOP</string>
+              </property>
+             </widget>
+            </item>
+            <item row="6" column="1">
+             <widget class="QPushButton" name="pbPauseProgram">
+              <property name="text">
+               <string>PAUSE</string>
+              </property>
+             </widget>
+            </item>
+            <item row="8" column="1">
+             <widget class="QPushButton" name="pbStepProgram">
+              <property name="text">
+               <string>STEP</string>
+              </property>
+             </widget>
+            </item>
+           </layout>
           </widget>
          </widget>
         </item>
@@ -1133,7 +1171,7 @@
     <rect>
      <x>0</x>
      <y>0</y>
-     <width>782</width>
+     <width>1148</width>
      <height>21</height>
     </rect>
    </property>
@@ -1149,8 +1187,8 @@
     </property>
     <addaction name="actionClear"/>
     <addaction name="actionReset"/>
-    <addaction name="actionEnable_Keyboard_Controll"/>
-    <addaction name="actionEnable_Joystick_Controll"/>
+    <addaction name="actionEnable_Keyboard_Control"/>
+    <addaction name="actionEnable_Joystick_Control"/>
    </widget>
    <widget class="QMenu" name="menuHelp">
     <property name="title">
@@ -1181,7 +1219,7 @@
     <string>Reset</string>
    </property>
   </action>
-  <action name="actionEnable_Keyboard_Controll">
+  <action name="actionEnable_Keyboard_Control">
    <property name="checkable">
     <bool>true</bool>
    </property>
@@ -1192,7 +1230,7 @@
     <string>Enable Keyboard Control</string>
    </property>
   </action>
-  <action name="actionEnable_Joystick_Controll">
+  <action name="actionEnable_Joystick_Control">
    <property name="checkable">
     <bool>true</bool>
    </property>
