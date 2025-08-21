@@ -619,11 +619,16 @@ class GUI(QApplication):
     def __output_func(self, message):
         self.__window.teResult.setText(f"{message}")
 
-    def __move_j(self, a1,a2,a3,a4,a5,a6):
+    def __move_j(self, a1,a2,a3,a4,a5,a6,speed=-1):
+        if speed == -1:
+            speed = self.__max_speed
         self.__target_position[0:12:2] = [a1,a2,a3,a4,a5,a6]
-        self.__target_position[1:12:2] = [self.__max_speed]*6 # speeds
+        self.__target_position[1:12:2] = [speed]*6
 
         self.__put_action(Actions.UpdateAbsolutePositions)
+
+        while self.__axis_states != 0:
+            pass
 
     def __load_script(self):
         file_dialog = QFileDialog(self.__window)
