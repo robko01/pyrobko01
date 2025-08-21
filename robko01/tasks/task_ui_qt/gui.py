@@ -870,13 +870,13 @@ class GUI(QApplication):
         if answer == 16384:
             self.__put_action(Actions.ResetController)
 
-    def __actionEnable_Keyboard_Controll_triggered(self):
+    def __actionEnable_Keyboard_Control_triggered(self):
 
         # Stop Joystick
-        self.__window.actionEnable_Joystick_Controll.setChecked(False)
+        self.__window.actionEnable_Joystick_Control.setChecked(False)
         self.__jsc_enable(False)
 
-        if self.__window.actionEnable_Keyboard_Controll.isChecked():
+        if self.__window.actionEnable_Keyboard_Control.isChecked():
             self.__window.installEventFilter(self)
 
         else:
@@ -885,12 +885,12 @@ class GUI(QApplication):
         for controller in self.__axis_controllers:
             controller.stop()
 
-    def __actionEnable_Joystick_Controll_triggered(self):
+    def __actionEnable_Joystick_Control_triggered(self):
 
         # Stop keyboard.
-        self.__window.actionEnable_Keyboard_Controll.setChecked(False)
+        self.__window.actionEnable_Keyboard_Control.setChecked(False)
         self.__window.removeEventFilter(self)
-        self.__jsc_enable(self.__window.actionEnable_Joystick_Controll.isChecked())
+        self.__jsc_enable(self.__window.actionEnable_Joystick_Control.isChecked())
 
     def __actionAbout_triggered(self):
 
@@ -945,10 +945,10 @@ class GUI(QApplication):
         self.__window.actionExit.triggered.connect(self.__actionExit_triggered)
         self.__window.actionClear.triggered.connect(self.__actionClear_triggered)
         self.__window.actionReset.triggered.connect(self.__actionReset_triggered)
-        self.__window.actionEnable_Keyboard_Controll.triggered.connect(\
-            self.__actionEnable_Keyboard_Controll_triggered)
-        self.__window.actionEnable_Joystick_Controll.triggered.connect(\
-            self.__actionEnable_Joystick_Controll_triggered)
+        self.__window.actionEnable_Keyboard_Control.triggered.connect(\
+            self.__actionEnable_Keyboard_Control_triggered)
+        self.__window.actionEnable_Joystick_Control.triggered.connect(\
+            self.__actionEnable_Joystick_Control_triggered)
         self.__window.actionAbout.triggered.connect(self.__actionAbout_triggered)
 
         # Buttons Manual
