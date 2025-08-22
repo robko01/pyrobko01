@@ -1237,7 +1237,7 @@
     <bool>true</bool>
    </property>
    <property name="text">
-    <string>Enable Joystic Control</string>
+    <string>Enable Joystick Control</string>
    </property>
   </action>
   <action name="actionAbout">
@@ -1249,20 +1249,32 @@
    <property name="text">
     <string>Load</string>
    </property>
+   <property name="shortcut">
+    <string>Ctrl+O</string>
+   </property>
   </action>
   <action name="actionSaveProgram">
    <property name="text">
     <string>Save</string>
+   </property>
+   <property name="shortcut">
+    <string>Ctrl+S</string>
    </property>
   </action>
   <action name="actionNewProgram">
    <property name="text">
     <string>New</string>
    </property>
+   <property name="shortcut">
+    <string>Ctrl+N</string>
+   </property>
   </action>
   <action name="actionSaveAsProgram">
    <property name="text">
     <string>Save As</string>
+   </property>
+   <property name="shortcut">
+    <string>Ctrl+Shift+S</string>
    </property>
   </action>
   <action name="actionRunProgram">
