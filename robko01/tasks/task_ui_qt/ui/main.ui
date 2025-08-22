@@ -1071,6 +1071,13 @@
             <string>Automatic</string>
            </attribute>
            <layout class="QGridLayout" name="gridLayout_5">
+            <item row="6" column="1">
+             <widget class="QPushButton" name="pbStepProgram">
+              <property name="text">
+               <string>STEP</string>
+              </property>
+             </widget>
+            </item>
             <item row="2" column="1">
              <widget class="QPushButton" name="pbRunProgram">
               <property name="text">
@@ -1088,10 +1095,37 @@
               </property>
              </widget>
             </item>
+            <item row="4" column="1">
+             <widget class="QPushButton" name="pbPauseProgram">
+              <property name="text">
+               <string>PAUSE</string>
+              </property>
+             </widget>
+            </item>
+            <item row="8" column="1">
+             <spacer name="verticalSpacer_2">
+              <property name="orientation">
+               <enum>Qt::Vertical</enum>
+              </property>
+              <property name="sizeHint" stdset="0">
+               <size>
+                <width>20</width>
+                <height>40</height>
+               </size>
+              </property>
+             </spacer>
+            </item>
             <item row="1" column="0" rowspan="7">
-             <widget class="QTextEdit" name="teProgramEditor">
+             <widget class="QPlainTextEdit" name="pteProgramEditor">
               <property name="placeholderText">
                <string/>
+              </property>
+             </widget>
+            </item>
+            <item row="3" column="1">
+             <widget class="QPushButton" name="pbStopProgram">
+              <property name="text">
+               <string>STOP</string>
               </property>
              </widget>
             </item>
@@ -1107,40 +1141,6 @@
                </size>
               </property>
              </spacer>
-            </item>
-            <item row="8" column="1">
-             <spacer name="verticalSpacer_2">
-              <property name="orientation">
-               <enum>Qt::Vertical</enum>
-              </property>
-              <property name="sizeHint" stdset="0">
-               <size>
-                <width>20</width>
-                <height>40</height>
-               </size>
-              </property>
-             </spacer>
-            </item>
-            <item row="4" column="1">
-             <widget class="QPushButton" name="pbPauseProgram">
-              <property name="text">
-               <string>PAUSE</string>
-              </property>
-             </widget>
-            </item>
-            <item row="3" column="1">
-             <widget class="QPushButton" name="pbStopProgram">
-              <property name="text">
-               <string>STOP</string>
-              </property>
-             </widget>
-            </item>
-            <item row="6" column="1">
-             <widget class="QPushButton" name="pbStepProgram">
-              <property name="text">
-               <string>STEP</string>
-              </property>
-             </widget>
             </item>
            </layout>
           </widget>
