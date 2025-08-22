@@ -25,7 +25,6 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
 import sys
 import os
-import queue
 import traceback
 
 from robko01.tasks.task_ui_qt.utils.stream_redirector import StreamRedirector
@@ -33,8 +32,8 @@ from robko01.tasks.task_ui_qt.utils.stream_redirector import StreamRedirector
 from robko01.kinematics.data.steppers_coefficients import SteppersCoefficients
 from robko01.kinematics.kinematics import Kinematics
 from robko01.kinematics.utils.utils import xy2lr
-
 from robko01.tasks.task_ui_qt.utils.worker import Worker
+from robko01.utils.action_controller import ActionController
 from robko01.utils.thread_timer import ThreadTimer
 from robko01.utils.logger import get_logger
 from robko01.utils.axis_action_controller import AxisActionController
@@ -46,6 +45,7 @@ from PySide6.QtUiTools import QUiLoader
 from PySide6.QtWidgets import QApplication, QMessageBox, QFileDialog
 from PySide6.QtCore import QEvent, QObject, Qt, Signal, Slot, QThread, Qt
 from PySide6.QtGui import QAction, QTextCursor
+
 import serial
 
 #region File Attributes
@@ -106,15 +106,11 @@ class GUI(QApplication):
         if self.__controller is None:
             raise ReferenceError("Invalid controller instance.")
 
-        self.__actions_queue = queue.Queue()
-        """Actions queue.
+        self.__update_timer = ThreadTimer()
+        """Update timer.
         """
-
-        self.__action_update_timer = ThreadTimer()
-        """Action update timer.
-        """
-
-        self.__init_action_timer()
+        self.__update_timer.update_rate = 0.1 # Update time!
+        self.__update_timer.set_cb(self.__update_time_cb)
 
         self.__axis_controllers = []
         """Axis controllers.
@@ -192,6 +188,9 @@ class GUI(QApplication):
         """Software grasping lock.
         """
 
+        self.__action_controller = ActionController()
+        self.__action_controller.set_action_cb(self.__action_controller_cb)
+
 #endregion
 
 #region Private Methods
@@ -220,7 +219,7 @@ class GUI(QApplication):
         self.__port_a_outputs += self.__window.cbOut6.isChecked() * 64
         self.__port_a_outputs += self.__window.cbOut7.isChecked() * 128
 
-        self.__put_action(Actions.UpdateOutputs)
+        self.__action_controller.add_action(Actions.UpdateOutputs)
 
     def __update_joint_pos(self):
 
@@ -356,122 +355,6 @@ class GUI(QApplication):
         self.__window.lcdP.display(d_pos[3])
         self.__window.lcdR.display(d_pos[4])
 
-#endregion
-
-#region Private Methods (Action Control)
-
-    def __init_action_timer(self):
-        self.__action_update_timer.update_rate = 0.1 # Update time!
-        self.__action_update_timer.set_cb(self.__action_timer_cb)
-
-    def __put_action(self, action):
-
-        self.__actions_queue.put(action)
-
-    def __do_action(self, action):
-
-        if action == Actions.NONE:
-            pass
-
-        if action == Actions.UpdateAbsolutePositions:
-            self.__controller.move_absolute(self.__target_position)
-
-        elif action == Actions.UpdateSpeeds:
-            self.__controller.move_speed(self.__current_speed)
-
-        elif action == Actions.UpdateOutputs:
-            self.__controller.set_outputs(self.__port_a_outputs)
-
-        elif action == Actions.ClearController:
-            self.__controller.clear()
-
-        elif action == Actions.ResetController:
-            pass
-
-        elif action == Actions.DoTest1:
-            # self.__controller.move_absolute([200, 100, 200, 100, 200, 100, 0, 0, 0, 0, 0, 0])
-            pass
-
-        elif action == Actions.DoTest2:
-            # self.__controller.move_absolute([0, 100, 0, 100, 0, 100, 0, 0, 0, 0, 0, 0])
-            pass
-
-    def __action_timer_cb(self):
-
-        try:
-            if self.__jsc is not None:
-                self.__jsc.update()
-
-            self.__axis_states = self.__controller.is_moving()
-            self.__current_position = self.__controller.current_position()
-            self.__port_a_inputs = self.__controller.get_inputs()
-
-            self.__update_displays_animation()
-            self.__update_joint_pos()
-            self.__update_cartesian_pos()
-            self.__update_port_a_inputs()
-
-            # Stop the gripper if it is closed enough.
-            if 1 & self.__port_a_inputs:
-                if self.__axis_controllers[5].direction == -1:
-                    self.__axis_controllers[5].stop()
-
-            # if (2 & self.__port_a_inputs):
-            #     if self.__axis_controllers[5].direction == -1:
-            #         self.__axis_controllers[5].stop()
-
-
-            if not self.__actions_queue.empty():
-                action = self.__actions_queue.get()
-                self.__do_action(action)
-
-        except serial.serialutil.SerialException as exc:
-            self.__logger.error(exc)
-
-        except Exception as exc:
-            self.__logger.error(traceback.format_exc())
-
-#endregion
-
-#region Private Methods (Axises CB)
-
-    def __axis_0(self, speed):
-
-        self.__current_speed[1] = speed * -1
-
-        self.__put_action(Actions.UpdateSpeeds)
-
-    def __axis_1(self, speed):
-
-        self.__current_speed[3] = speed * -1
-
-        self.__put_action(Actions.UpdateSpeeds)
-
-    def __axis_2(self, speed):
-
-        self.__current_speed[5] = speed
-        self.__current_speed[11] = speed * -1
-
-        self.__put_action(Actions.UpdateSpeeds)
-
-    def __axis_3(self, speed):
-
-        self.__current_speed[7] = speed
-
-        self.__put_action(Actions.UpdateSpeeds)
-
-    def __axis_4(self, speed):
-
-        self.__current_speed[9] = speed
-
-        self.__put_action(Actions.UpdateSpeeds)
-
-    def __axis_5(self, speed):
-
-        self.__current_speed[11] = speed
-
-        self.__put_action(Actions.UpdateSpeeds)
-
     def __set_position(self):
 
         def calc_speeds(steps, speed):
@@ -512,7 +395,110 @@ class GUI(QApplication):
         self.__target_position[0:12:2] = steps
         self.__target_position[1:12:2] = [self.__max_speed]*6 # speeds
 
-        self.__put_action(Actions.UpdateAbsolutePositions)
+        self.__action_controller.add_action(Actions.UpdateAbsolutePositions)
+
+    def __update_time_cb(self):
+
+        try:
+            if self.__jsc is not None:
+                self.__jsc.update()
+
+            self.__axis_states = self.__controller.is_moving()
+            self.__current_position = self.__controller.current_position()
+            self.__port_a_inputs = self.__controller.get_inputs()
+
+            self.__update_displays_animation()
+            self.__update_joint_pos()
+            self.__update_cartesian_pos()
+            self.__update_port_a_inputs()
+
+            # Stop the gripper if it is closed enough.
+            if 1 & self.__port_a_inputs:
+                if self.__axis_controllers[5].direction == -1:
+                    self.__axis_controllers[5].stop()
+
+            # if (2 & self.__port_a_inputs):
+            #     if self.__axis_controllers[5].direction == -1:
+            #         self.__axis_controllers[5].stop()
+
+        except serial.serialutil.SerialException as exc:
+            self.__logger.error(exc)
+
+        except Exception as exc:
+            self.__logger.error(traceback.format_exc())
+
+#endregion
+
+#region Private Methods (Action Control)
+
+    def __action_controller_cb(self, action):
+
+        if action == Actions.NONE:
+            pass
+
+        if action == Actions.UpdateAbsolutePositions:
+            self.__controller.move_absolute(self.__target_position)
+
+        elif action == Actions.UpdateSpeeds:
+            self.__controller.move_speed(self.__current_speed)
+
+        elif action == Actions.UpdateOutputs:
+            self.__controller.set_outputs(self.__port_a_outputs)
+
+        elif action == Actions.ClearController:
+            self.__controller.clear()
+
+        elif action == Actions.ResetController:
+            pass
+
+        elif action == Actions.DoTest1:
+            # self.__controller.move_absolute([200, 100, 200, 100, 200, 100, 0, 0, 0, 0, 0, 0])
+            pass
+
+        elif action == Actions.DoTest2:
+            # self.__controller.move_absolute([0, 100, 0, 100, 0, 100, 0, 0, 0, 0, 0, 0])
+            pass
+
+#endregion
+
+#region Private Methods (Axises CB)
+
+    def __axis_0(self, speed):
+
+        self.__current_speed[1] = speed * -1
+
+        self.__action_controller.add_action(Actions.UpdateSpeeds)
+
+    def __axis_1(self, speed):
+
+        self.__current_speed[3] = speed * -1
+
+        self.__action_controller.add_action(Actions.UpdateSpeeds)
+
+    def __axis_2(self, speed):
+
+        self.__current_speed[5] = speed
+        self.__current_speed[11] = speed * -1
+
+        self.__action_controller.add_action(Actions.UpdateSpeeds)
+
+    def __axis_3(self, speed):
+
+        self.__current_speed[7] = speed
+
+        self.__action_controller.add_action(Actions.UpdateSpeeds)
+
+    def __axis_4(self, speed):
+
+        self.__current_speed[9] = speed
+
+        self.__action_controller.add_action(Actions.UpdateSpeeds)
+
+    def __axis_5(self, speed):
+
+        self.__current_speed[11] = speed
+
+        self.__action_controller.add_action(Actions.UpdateSpeeds)
 
 #endregion
 
@@ -767,7 +753,7 @@ class GUI(QApplication):
         self.__target_position[0:12:2] = [a1,a2,a3,a4,a5,a6]
         self.__target_position[1:12:2] = [speed]*6
 
-        self.__put_action(Actions.UpdateAbsolutePositions)
+        self.__action_controller.add_action(Actions.UpdateAbsolutePositions)
 
         while self.__axis_states != 0:
             pass
@@ -924,7 +910,7 @@ class GUI(QApplication):
         answer = msg_box.exec()
 
         if answer == 16384:
-            self.__put_action(Actions.ClearController)
+            self.__action_controller.add_action(Actions.ClearController)
 
     def __actionReset_triggered(self):
 
@@ -936,7 +922,7 @@ class GUI(QApplication):
         answer = msg_box.exec()
 
         if answer == 16384:
-            self.__put_action(Actions.ResetController)
+            self.__action_controller.add_action(Actions.ResetController)
 
     def __actionEnable_Keyboard_Control_triggered(self):
 
@@ -1129,12 +1115,16 @@ class GUI(QApplication):
 
         self.__init_automatic()
 
-        self.__action_update_timer.start()
+        self.__update_timer.start()
+
+        self.__action_controller.start()
 
     def stop(self):
         """Stop
         """
 
-        self.__action_update_timer.stop()
+        self.__update_timer.stop()
+
+        self.__action_controller.stop()
 
 #endregion
