@@ -59,9 +59,6 @@ class Actions(Enum):
 
     NONE = 0
 
-    DoTest1 = 10
-    DoTest2 = 11
-
     SaveCurrentPosition = 15
     RunStoredPositions = 17
 
