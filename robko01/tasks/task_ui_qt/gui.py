@@ -34,6 +34,7 @@ from robko01.kinematics.data.steppers_coefficients import SteppersCoefficients
 from robko01.kinematics.kinematics import Kinematics
 from robko01.kinematics.utils.utils import xy2lr
 
+from robko01.tasks.task_ui_qt.utils.worker import Worker
 from robko01.utils.thread_timer import ThreadTimer
 from robko01.utils.logger import get_logger
 from robko01.utils.axis_action_controller import AxisActionController
@@ -43,8 +44,8 @@ from robko01.joystick.joystick import JoystickController
 
 from PySide6.QtUiTools import QUiLoader
 from PySide6.QtWidgets import QApplication, QMessageBox, QFileDialog
-from PySide6.QtCore import QEvent, QObject, Qt
-
+from PySide6.QtCore import QEvent, QObject, Qt, Signal, Slot, QThread, Qt
+from PySide6.QtGui import QAction, QTextCursor
 import serial
 
 #region File Attributes
@@ -357,6 +358,164 @@ class GUI(QApplication):
 
 #endregion
 
+#region Private Methods (Action Control)
+
+    def __init_action_timer(self):
+        self.__action_update_timer.update_rate = 0.1 # Update time!
+        self.__action_update_timer.set_cb(self.__action_timer_cb)
+
+    def __put_action(self, action):
+
+        self.__actions_queue.put(action)
+
+    def __do_action(self, action):
+
+        if action == Actions.NONE:
+            pass
+
+        if action == Actions.UpdateAbsolutePositions:
+            self.__controller.move_absolute(self.__target_position)
+
+        elif action == Actions.UpdateSpeeds:
+            self.__controller.move_speed(self.__current_speed)
+
+        elif action == Actions.UpdateOutputs:
+            self.__controller.set_outputs(self.__port_a_outputs)
+
+        elif action == Actions.ClearController:
+            self.__controller.clear()
+
+        elif action == Actions.ResetController:
+            pass
+
+        elif action == Actions.DoTest1:
+            # self.__controller.move_absolute([200, 100, 200, 100, 200, 100, 0, 0, 0, 0, 0, 0])
+            pass
+
+        elif action == Actions.DoTest2:
+            # self.__controller.move_absolute([0, 100, 0, 100, 0, 100, 0, 0, 0, 0, 0, 0])
+            pass
+
+    def __action_timer_cb(self):
+
+        try:
+            if self.__jsc is not None:
+                self.__jsc.update()
+
+            self.__axis_states = self.__controller.is_moving()
+            self.__current_position = self.__controller.current_position()
+            self.__port_a_inputs = self.__controller.get_inputs()
+
+            self.__update_displays_animation()
+            self.__update_joint_pos()
+            self.__update_cartesian_pos()
+            self.__update_port_a_inputs()
+
+            # Stop the gripper if it is closed enough.
+            if 1 & self.__port_a_inputs:
+                if self.__axis_controllers[5].direction == -1:
+                    self.__axis_controllers[5].stop()
+
+            # if (2 & self.__port_a_inputs):
+            #     if self.__axis_controllers[5].direction == -1:
+            #         self.__axis_controllers[5].stop()
+
+
+            if not self.__actions_queue.empty():
+                action = self.__actions_queue.get()
+                self.__do_action(action)
+
+        except serial.serialutil.SerialException as exc:
+            self.__logger.error(exc)
+
+        except Exception as exc:
+            self.__logger.error(traceback.format_exc())
+
+#endregion
+
+#region Private Methods (Axises CB)
+
+    def __axis_0(self, speed):
+
+        self.__current_speed[1] = speed * -1
+
+        self.__put_action(Actions.UpdateSpeeds)
+
+    def __axis_1(self, speed):
+
+        self.__current_speed[3] = speed * -1
+
+        self.__put_action(Actions.UpdateSpeeds)
+
+    def __axis_2(self, speed):
+
+        self.__current_speed[5] = speed
+        self.__current_speed[11] = speed * -1
+
+        self.__put_action(Actions.UpdateSpeeds)
+
+    def __axis_3(self, speed):
+
+        self.__current_speed[7] = speed
+
+        self.__put_action(Actions.UpdateSpeeds)
+
+    def __axis_4(self, speed):
+
+        self.__current_speed[9] = speed
+
+        self.__put_action(Actions.UpdateSpeeds)
+
+    def __axis_5(self, speed):
+
+        self.__current_speed[11] = speed
+
+        self.__put_action(Actions.UpdateSpeeds)
+
+    def __set_position(self):
+
+        def calc_speeds(steps, speed):
+            speeds = steps
+            max_pos = max(steps)
+
+            if max_pos <= 0:
+                max_pos = 1
+
+            for index, step in enumerate(steps):
+                speeds[index] = (steps[index] * speed) / max_pos
+                speeds[index] = abs(speeds[index])
+                speeds[index] = int(speeds[index])
+            return speeds
+
+        ax0 = self.__window.sbBasePos.value()
+        ax1 = self.__window.sbShoulderPos.value()
+        ax2 = self.__window.sbElbowPos.value()
+        ax3 = self.__window.sbPPos.value()
+        ax4 = self.__window.sbRPos.value()
+        ax5 = self.__window.sbGripperPos.value()
+
+        steps = [ax0, ax1, ax2, ax3, ax4, ax5]
+
+        # Differentials inverse model.
+        q4 = steps[4] + steps[3]
+        q5 = steps[4] - steps[3]
+        steps[3] = q4
+        steps[4] = q5
+
+        # Gripper compensation.
+        # In steps is essayer because
+        # ration between elbow and gripper is 1:1.
+        steps[5] = steps[5] - steps[2]
+        
+        # speeds = calc_speeds(steps, self.__max_speed)
+
+        self.__target_position[0:12:2] = steps
+        self.__target_position[1:12:2] = [self.__max_speed]*6 # speeds
+
+        self.__put_action(Actions.UpdateAbsolutePositions)
+
+#endregion
+
 #region Private Methods (Joystick Events)
 
     def __jsc_update_cb(self, button_data, axis_data, hat_data):
@@ -602,24 +761,6 @@ class GUI(QApplication):
 
 #region Private Methods (Automatic Control)
 
-    def __init_automation(self):
-
-        pass
-
-    def __update_automation(self):
-
-        # Stop the gripper if it is closed enough.
-        if 1 & self.__port_a_inputs:
-            if self.__axis_controllers[5].direction == -1:
-                self.__axis_controllers[5].stop()
-
-        # if (2 & self.__port_a_inputs):
-        #     if self.__axis_controllers[5].direction == -1:
-        #         self.__axis_controllers[5].stop()
-
-    def __output_func(self, message):
-        self.__window.teResult.setText(f"{message}")
-
     def __move_j(self, a1,a2,a3,a4,a5,a6,speed=-1):
         if speed == -1:
             speed = self.__max_speed
@@ -631,196 +772,122 @@ class GUI(QApplication):
         while self.__axis_states != 0:
             pass
 
-    def __load_script(self):
-        file_dialog = QFileDialog(self.__window)
-        script_path, _ = file_dialog.getOpenFileName(self.__window, "Load Python Script", "", "Python Files (*.py)")
-        if script_path:
-            self.__window.teCode.setPlainText("")
-            with open(script_path, 'r') as file:
-                script_content = file.read()
-            self.__window.teCode.setPlainText(script_content)
-            self.__window.teResult.setPlainText("")
+    @Slot()
+    def __load_program(self):
+        path, _ = QFileDialog.getOpenFileName(self.__window, "Load Python Script", "", "Python Files (*.py)")
+        if not path:
+            return
+        self.__worker.script_path = path
+        with open(path, "r", encoding="utf-8") as f:
+            self.__window.teProgramEditor.setPlainText(f.read())
+        self.__window.teConsole.append(f"Loaded script: {path}\n")
+        self.__window.actionSaveProgram.setEnabled(True)
+        self.__window.pbRunProgram.setEnabled(True)
 
-    def __run_automatic_script(self):
-        # Lock the UI.
-        self.__window.teCode.setEnabled(False)
-        self.__window.pbLoadProgram.setEnabled(False)
-        self.__window.pbRunProgram.setEnabled(False)
+    @Slot()
+    def __save_program(self):
+        pass
+
+    @Slot()
+    def __run_program(self):
+        if self.__worker is not None:
+            if not self.__worker.isRunning():
+
+                # ensure the latest edits are saved before execution
+                if self.__window.actionSaveProgram.isEnabled():
+                    self.__save_program()
+
+                # reset controls
+                self.__worker.continue_()
+                self.__worker._stepping = False
+                self.__worker._stop_requested = False
+                self.__worker.start()
+
+                # Lock the UI.
+                self.__window.pbRunProgram.setEnabled(False)
+                for a in (self.__window.pbStopProgram, 
+                        self.__window.pbPauseProgram,
+                        self.__window.pbContinueProgram,
+                        self.__window.pbStepProgram):
+                    a.setEnabled(True)
+
+        #          {
+        #              '__name__': '__main__',
+        #              '__file__': "main.py",
+        #              'output': self.__output_func,
+        #              "move_j": self.__move_j
+        #              })
+
+    @Slot()
+    def __stop_program(self):
+        if self.__worker is not None:
+            self.__worker.stop()
+
+    @Slot()
+    def __pause_program(self):
+        if self.__worker is not None:
+            self.__worker.pause()
+            # Lock UI.
+            self.__window.pbPauseProgram.setEnabled(False)
+            self.__window.pbContinueProgram.setEnabled(True)
+            self.__window.pbStepProgram.setEnabled(True)
+
+    @Slot()
+    def __continue_program(self):
+        if self.__worker is not None:
+            self.__worker.continue_()
+            # Lock UI.
+            self.__window.pbPauseProgram.setEnabled(True)
+            self.__window.pbContinueProgram.setEnabled(False)
+
+    @Slot()
+    def __step_program(self):
+        if self.__worker is not None:
+            self.__worker.step_once()
+            # Lock UI.
+            self.__window.pbPauseProgram.setEnabled(False)
+            self.__window.pbContinueProgram.setEnabled(True)
+
+    @Slot()
+    def on_script_started(self):
+        self.__window.teConsole.append("Script started...\n")
 
         # Redirect STDOUT
         self.__original_stdout = sys.stdout
-        sys.stdout = StreamRedirector(self.__window.teResult)
+        sys.stdout = StreamRedirector(self.__window.teConsole)
 
-        try:
-            code = compile(self.__window.teCode.toPlainText(), ".", 'exec')
-            exec(code,
-                 {
-                     '__name__': '__main__',
-                     '__file__': "main.py",
-                     'output': self.__output_func,
-                     "move_j": self.__move_j
-                     })
-        except Exception as exception:
-            self.__window.teResult.setText(str(exception))
+    @Slot()
+    def on_script_finished(self):
+        self.__window.teConsole.append("Script finished.\n")
+
+        self.__window.pbStopProgram.setEnabled(False)
+        self.__window.pbPauseProgram.setEnabled(False)
+        self.__window.pbContinueProgram.setEnabled(False)
+        self.__window.pbStepProgram.setEnabled(False)
+        self.__window.pbRunProgram.setEnabled(True)
 
         # Redirect STDOUT
         sys.stdout = self.__original_stdout
 
-        # Unlock the UI.
-        self.__window.teCode.setEnabled(True)
-        self.__window.pbLoadProgram.setEnabled(True)
-        self.__window.pbRunProgram.setEnabled(True)
+    @Slot(int, str)
+    def on_dbg_line(self, lineno: int, src: str):
+        # show current line and bring it into view
+        # self.statusBar().showMessage(f"Line {lineno}: {src}")
+        print(f"Line {lineno}: {src}")
+        cursor = self.__window.teProgramEditor.textCursor()
+        cursor.movePosition(QTextCursor.Start)
+        cursor.movePosition(QTextCursor.Down, QTextCursor.MoveAnchor, max(0, lineno - 1))
+        self.__window.teProgramEditor.setTextCursor(cursor)
+        self.__window.teProgramEditor.ensureCursorVisible()
 
-
-#endregion
-
-#region Private Methods (Action Control)
-
-    def __init_action_timer(self):
-        self.__action_update_timer.update_rate = 0.1 # Update time!
-        self.__action_update_timer.set_cb(self.__action_timer_cb)
-
-    def __put_action(self, action):
-
-        self.__actions_queue.put(action)
-
-    def __do_action(self, action):
-
-        if action == Actions.NONE:
-            pass
-
-        if action == Actions.UpdateAbsolutePositions:
-            self.__controller.move_absolute(self.__target_position)
-
-        elif action == Actions.UpdateSpeeds:
-            self.__controller.move_speed(self.__current_speed)
-
-        elif action == Actions.UpdateOutputs:
-            self.__controller.set_outputs(self.__port_a_outputs)
-
-        elif action == Actions.ClearController:
-            self.__controller.clear()
-
-        elif action == Actions.ResetController:
-            pass
-
-        elif action == Actions.DoTest1:
-            # self.__controller.move_absolute([200, 100, 200, 100, 200, 100, 0, 0, 0, 0, 0, 0])
-            pass
-
-        elif action == Actions.DoTest2:
-            # self.__controller.move_absolute([0, 100, 0, 100, 0, 100, 0, 0, 0, 0, 0, 0])
-            pass
-
-    def __action_timer_cb(self):
-
-        try:
-            if self.__jsc is not None:
-                self.__jsc.update()
-
-            self.__axis_states = self.__controller.is_moving()
-            self.__current_position = self.__controller.current_position()
-            self.__port_a_inputs = self.__controller.get_inputs()
-
-            self.__update_displays_animation()
-            self.__update_joint_pos()
-            self.__update_cartesian_pos()
-            self.__update_port_a_inputs()
-
-            self.__update_automation()
-
-            if not self.__actions_queue.empty():
-                action = self.__actions_queue.get()
-                self.__do_action(action)
-
-        except serial.serialutil.SerialException as exc:
-            self.__logger.error(exc)
-
-        except Exception as exc:
-            self.__logger.error(traceback.format_exc())
-
-#endregion
-
-#region Private Methods (Axises CB)
-
-    def __axis_0(self, speed):
-
-        self.__current_speed[1] = speed * -1
-
-        self.__put_action(Actions.UpdateSpeeds)
-
-    def __axis_1(self, speed):
-
-        self.__current_speed[3] = speed * -1
-
-        self.__put_action(Actions.UpdateSpeeds)
-
-    def __axis_2(self, speed):
-
-        self.__current_speed[5] = speed
-        self.__current_speed[11] = speed * -1
-
-        self.__put_action(Actions.UpdateSpeeds)
-
-    def __axis_3(self, speed):
-
-        self.__current_speed[7] = speed
-
-        self.__put_action(Actions.UpdateSpeeds)
-
-    def __axis_4(self, speed):
-
-        self.__current_speed[9] = speed
-
-        self.__put_action(Actions.UpdateSpeeds)
-
-    def __axis_5(self, speed):
-
-        self.__current_speed[11] = speed
-
-        self.__put_action(Actions.UpdateSpeeds)
-
-    def __set_position(self):
-
-        def calc_speeds(steps, speed):
-            speeds = steps
-            max_pos = max(steps)
-
-            if max_pos <= 0:
-                max_pos = 1
-
-            for index, step in enumerate(steps):
-                speeds[index] = (steps[index] * speed) / max_pos
-                speeds[index] = abs(speeds[index])
-                speeds[index] = int(speeds[index])
-            return speeds
-
-        ax0 = self.__window.sbBasePos.value()
-        ax1 = self.__window.sbShoulderPos.value()
-        ax2 = self.__window.sbElbowPos.value()
-        ax3 = self.__window.sbPPos.value()
-        ax4 = self.__window.sbRPos.value()
-        ax5 = self.__window.sbGripperPos.value()
-
-        steps = [ax0, ax1, ax2, ax3, ax4, ax5]
-
-        # Differentials inverse model.
-        q4 = steps[4] + steps[3]
-        q5 = steps[4] - steps[3]
-        steps[3] = q4
-        steps[4] = q5
-
-        # Gripper compensation.
-        # In steps is essayer because
-        # ration between elbow and gripper is 1:1.
-        steps[5] = steps[5] - steps[2]
-        
-        # speeds = calc_speeds(steps, self.__max_speed)
-
-        self.__target_position[0:12:2] = steps
-        self.__target_position[1:12:2] = [self.__max_speed]*6 # speeds
-
-        self.__put_action(Actions.UpdateAbsolutePositions)
+    def __init_automatic(self):
+        self.__worker = Worker()
+        """Script executor.
+        """
+        self.__worker.output.connect(self.__window.teConsole.append)
+        self.__worker.started.connect(self.on_script_started)
+        self.__worker.finished.connect(self.on_script_finished)
+        self.__worker.dbg_line.connect(self.on_dbg_line)
 
 #endregion
 
@@ -942,7 +1009,7 @@ class GUI(QApplication):
         loader = QUiLoader()
         self.__window = loader.load(file_name)
 
-        # Manu
+        # Menu
         self.__window.actionExit.triggered.connect(self.__actionExit_triggered)
         self.__window.actionClear.triggered.connect(self.__actionClear_triggered)
         self.__window.actionReset.triggered.connect(self.__actionReset_triggered)
@@ -1023,10 +1090,30 @@ class GUI(QApplication):
         self.__window.sldSpeed.valueChanged.connect(self.__sldSpeed_valueChanged)
 
         # Automatic
-        self.__window.teResult.setReadOnly(True)
-        self.__window.pbRunProgram.pressed.connect(self.__run_automatic_script)
-        self.__window.pbLoadProgram.pressed.connect(self.__load_script)
+        self.__window.teConsole.setReadOnly(True)
+
+        self.__window.actionNewProgram.triggered.connect(lambda: print("Not Implemented"))
+        self.__window.actionLoadProgram.triggered.connect(self.__load_program)
+        self.__window.actionSaveProgram.triggered.connect(self.__save_program)
+        self.__window.actionSaveAsProgram.triggered.connect(lambda: print("Not Implemented"))
         
+        self.__window.actionRunProgram.triggered.connect(self.__run_program)
+        self.__window.actionStopProgram.triggered.connect(self.__stop_program)
+
+        self.__window.pbRunProgram.clicked.connect(self.__run_program)
+        self.__window.pbStopProgram.clicked.connect(self.__stop_program)
+        self.__window.pbPauseProgram.clicked.connect(self.__pause_program)
+        self.__window.pbContinueProgram.clicked.connect(self.__continue_program)
+        self.__window.pbStepProgram.clicked.connect(self.__step_program)
+
+        # Lock the UI.
+        self.__window.pbRunProgram.setEnabled(True)
+        for a in (self.__window.pbStopProgram, 
+                self.__window.pbPauseProgram,
+                self.__window.pbContinueProgram,
+                self.__window.pbStepProgram):
+            a.setEnabled(False)
+
         # Show the UI.
         self.__window.show()
 
@@ -1038,9 +1125,9 @@ class GUI(QApplication):
         """Start
         """
 
-        self.__init_automation()
-
         self.__init_form()
+
+        self.__init_automatic()
 
         self.__action_update_timer.start()
 
