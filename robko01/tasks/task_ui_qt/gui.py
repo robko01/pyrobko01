@@ -27,12 +27,13 @@ import sys
 import os
 import traceback
 
+from robko01.tasks.task_ui_qt.editor.code_editor import CodeEditor
 from robko01.tasks.task_ui_qt.utils.stream_redirector import StreamRedirector
+from robko01.tasks.task_ui_qt.utils.worker import Worker
 
 from robko01.kinematics.data.steppers_coefficients import SteppersCoefficients
 from robko01.kinematics.kinematics import Kinematics
 from robko01.kinematics.utils.utils import xy2lr
-from robko01.tasks.task_ui_qt.utils.worker import Worker
 from robko01.utils.action_controller import ActionController
 from robko01.utils.thread_timer import ThreadTimer
 from robko01.utils.logger import get_logger
@@ -788,7 +789,7 @@ class GUI(QApplication):
             return
         self.__worker.script_path = path
         with open(path, "r", encoding="utf-8") as f:
-            self.__window.teProgramEditor.setPlainText(f.read())
+            self.__window.pteProgramEditor.setPlainText(f.read())
         self.__window.teConsole.append(f"Loaded script: {path}\n")
         self.__window.actionSaveProgram.setEnabled(True)
         self.__window.pbRunProgram.setEnabled(True)
@@ -883,13 +884,15 @@ class GUI(QApplication):
         # show current line and bring it into view
         self.__window.statusBar().showMessage(f"Line {lineno}: {src}")
         # print(f"Line {lineno}: {src}")
-        cursor = self.__window.teProgramEditor.textCursor()
+        cursor = self.__window.pteProgramEditor.textCursor()
         cursor.movePosition(QTextCursor.Start)
         cursor.movePosition(QTextCursor.Down, QTextCursor.MoveAnchor, max(0, lineno - 1))
-        self.__window.teProgramEditor.setTextCursor(cursor)
-        self.__window.teProgramEditor.ensureCursorVisible()
+        self.__window.pteProgramEditor.setTextCursor(cursor)
+        self.__window.pteProgramEditor.ensureCursorVisible()
 
     def __init_automatic(self):
+
+        # self.__window.pteProgramEditor = CodeEditor()
         self.__worker = Worker()
         """Script executor.
         """
