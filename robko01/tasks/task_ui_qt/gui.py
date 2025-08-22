@@ -219,7 +219,10 @@ class GUI(QApplication):
         self.__port_a_outputs += self.__window.cbOut6.isChecked() * 64
         self.__port_a_outputs += self.__window.cbOut7.isChecked() * 128
 
-        self.__action_controller.add_action(Actions.UpdateOutputs)
+        self.__action_controller.add_action({
+                "action": Actions.UpdateOutputs,
+                "data": self.__port_a_outputs
+                })
 
     def __update_joint_pos(self):
 
@@ -355,6 +358,62 @@ class GUI(QApplication):
         self.__window.lcdP.display(d_pos[3])
         self.__window.lcdR.display(d_pos[4])
 
+    def __update_time_cb(self):
+
+        try:
+            if self.__jsc is not None:
+                self.__jsc.update()
+
+            self.__axis_states = self.__controller.is_moving()
+            self.__current_position = self.__controller.current_position()
+            self.__port_a_inputs = self.__controller.get_inputs()
+
+            self.__update_displays_animation()
+            self.__update_joint_pos()
+            self.__update_cartesian_pos()
+            self.__update_port_a_inputs()
+
+            # Stop the gripper if it is closed enough.
+            if 1 & self.__port_a_inputs:
+                if self.__axis_controllers[5].direction == -1:
+                    self.__axis_controllers[5].stop()
+
+            # if (2 & self.__port_a_inputs):
+            #     if self.__axis_controllers[5].direction == -1:
+            #         self.__axis_controllers[5].stop()
+
+        except serial.serialutil.SerialException as exc:
+            self.__logger.error(exc)
+
+        except Exception as exc:
+            self.__logger.error(traceback.format_exc())
+
+#endregion
+
+#region Private Methods (Action Control)
+
+    def __action_controller_cb(self, payload):
+
+        action = payload["action"]
+
+        if action == Actions.NONE:
+            pass
+
+        if action == Actions.UpdateAbsolutePositions:
+            self.__controller.move_absolute(payload["data"])
+
+        elif action == Actions.UpdateSpeeds:
+            self.__controller.move_speed(self.__current_speed)
+
+        elif action == Actions.UpdateOutputs:
+            self.__controller.set_outputs(self.__port_a_outputs)
+
+        elif action == Actions.ClearController:
+            self.__controller.clear()
+
+        elif action == Actions.ResetController:
+            pass
+
     def __set_position(self):
 
         def calc_speeds(steps, speed):
@@ -395,68 +454,24 @@ class GUI(QApplication):
         self.__target_position[0:12:2] = steps
         self.__target_position[1:12:2] = [self.__max_speed]*6 # speeds
 
-        self.__action_controller.add_action(Actions.UpdateAbsolutePositions)
+        self.__action_controller.add_action({
+                "action": Actions.UpdateAbsolutePositions,
+                "data": self.__target_position
+                })
 
-    def __update_time_cb(self):
 
-        try:
-            if self.__jsc is not None:
-                self.__jsc.update()
+    def __move_j(self, a1,a2,a3,a4,a5,a6,speed=-1):
+        if speed == -1:
+            speed = self.__max_speed
+        self.__target_position[0:12:2] = [a1,a2,a3,a4,a5,a6]
+        self.__target_position[1:12:2] = [speed]*6
 
-            self.__axis_states = self.__controller.is_moving()
-            self.__current_position = self.__controller.current_position()
-            self.__port_a_inputs = self.__controller.get_inputs()
+        self.__action_controller.add_action({
+                "action": Actions.UpdateAbsolutePositions,
+                "data": self.__target_position
+                })
 
-            self.__update_displays_animation()
-            self.__update_joint_pos()
-            self.__update_cartesian_pos()
-            self.__update_port_a_inputs()
-
-            # Stop the gripper if it is closed enough.
-            if 1 & self.__port_a_inputs:
-                if self.__axis_controllers[5].direction == -1:
-                    self.__axis_controllers[5].stop()
-
-            # if (2 & self.__port_a_inputs):
-            #     if self.__axis_controllers[5].direction == -1:
-            #         self.__axis_controllers[5].stop()
-
-        except serial.serialutil.SerialException as exc:
-            self.__logger.error(exc)
-
-        except Exception as exc:
-            self.__logger.error(traceback.format_exc())
-
-#endregion
-
-#region Private Methods (Action Control)
-
-    def __action_controller_cb(self, action):
-
-        if action == Actions.NONE:
-            pass
-
-        if action == Actions.UpdateAbsolutePositions:
-            self.__controller.move_absolute(self.__target_position)
-
-        elif action == Actions.UpdateSpeeds:
-            self.__controller.move_speed(self.__current_speed)
-
-        elif action == Actions.UpdateOutputs:
-            self.__controller.set_outputs(self.__port_a_outputs)
-
-        elif action == Actions.ClearController:
-            self.__controller.clear()
-
-        elif action == Actions.ResetController:
-            pass
-
-        elif action == Actions.DoTest1:
-            # self.__controller.move_absolute([200, 100, 200, 100, 200, 100, 0, 0, 0, 0, 0, 0])
-            pass
-
-        elif action == Actions.DoTest2:
-            # self.__controller.move_absolute([0, 100, 0, 100, 0, 100, 0, 0, 0, 0, 0, 0])
+        while self.__axis_states != 0:
             pass
 
 #endregion
@@ -467,38 +482,56 @@ class GUI(QApplication):
 
         self.__current_speed[1] = speed * -1
 
-        self.__action_controller.add_action(Actions.UpdateSpeeds)
+        self.__action_controller.add_action({
+                "action": Actions.UpdateSpeeds,
+                "data": self.__current_speed
+                })
 
     def __axis_1(self, speed):
 
         self.__current_speed[3] = speed * -1
 
-        self.__action_controller.add_action(Actions.UpdateSpeeds)
+        self.__action_controller.add_action({
+                "action": Actions.UpdateSpeeds,
+                "data": self.__current_speed
+                })
 
     def __axis_2(self, speed):
 
         self.__current_speed[5] = speed
         self.__current_speed[11] = speed * -1
 
-        self.__action_controller.add_action(Actions.UpdateSpeeds)
+        self.__action_controller.add_action({
+                "action": Actions.UpdateSpeeds,
+                "data": self.__current_speed
+                })
 
     def __axis_3(self, speed):
 
         self.__current_speed[7] = speed
 
-        self.__action_controller.add_action(Actions.UpdateSpeeds)
+        self.__action_controller.add_action({
+                "action": Actions.UpdateSpeeds,
+                "data": self.__current_speed
+                })
 
     def __axis_4(self, speed):
 
         self.__current_speed[9] = speed
 
-        self.__action_controller.add_action(Actions.UpdateSpeeds)
+        self.__action_controller.add_action({
+                "action": Actions.UpdateSpeeds,
+                "data": self.__current_speed
+                })
 
     def __axis_5(self, speed):
 
         self.__current_speed[11] = speed
 
-        self.__action_controller.add_action(Actions.UpdateSpeeds)
+        self.__action_controller.add_action({
+                "action": Actions.UpdateSpeeds,
+                "data": self.__current_speed
+                })
 
 #endregion
 
@@ -747,17 +780,6 @@ class GUI(QApplication):
 
 #region Private Methods (Automatic Control)
 
-    def __move_j(self, a1,a2,a3,a4,a5,a6,speed=-1):
-        if speed == -1:
-            speed = self.__max_speed
-        self.__target_position[0:12:2] = [a1,a2,a3,a4,a5,a6]
-        self.__target_position[1:12:2] = [speed]*6
-
-        self.__action_controller.add_action(Actions.UpdateAbsolutePositions)
-
-        while self.__axis_states != 0:
-            pass
-
     @Slot()
     def __load_program(self):
         path, _ = QFileDialog.getOpenFileName(self.__window, "Load Python Script", "", "Python Files (*.py)")
@@ -910,7 +932,10 @@ class GUI(QApplication):
         answer = msg_box.exec()
 
         if answer == 16384:
-            self.__action_controller.add_action(Actions.ClearController)
+            self.__action_controller.add_action({
+                    "action": Actions.ClearController,
+                    "data": None
+                    })
 
     def __actionReset_triggered(self):
 
@@ -922,7 +947,10 @@ class GUI(QApplication):
         answer = msg_box.exec()
 
         if answer == 16384:
-            self.__action_controller.add_action(Actions.ResetController)
+            self.__action_controller.add_action({
+                    "action": Actions.ResetController,
+                    "data": None
+                    })
 
     def __actionEnable_Keyboard_Control_triggered(self):
 
