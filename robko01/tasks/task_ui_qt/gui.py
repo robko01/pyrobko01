@@ -459,7 +459,6 @@ class GUI(QApplication):
                 "data": self.__target_position
                 })
 
-
     def __move_j(self, a1,a2,a3,a4,a5,a6,speed=-1):
         if speed == -1:
             speed = self.__max_speed
@@ -880,8 +879,8 @@ class GUI(QApplication):
     @Slot(int, str)
     def on_dbg_line(self, lineno: int, src: str):
         # show current line and bring it into view
-        # self.statusBar().showMessage(f"Line {lineno}: {src}")
-        print(f"Line {lineno}: {src}")
+        self.__window.statusBar().showMessage(f"Line {lineno}: {src}")
+        # print(f"Line {lineno}: {src}")
         cursor = self.__window.teProgramEditor.textCursor()
         cursor.movePosition(QTextCursor.Start)
         cursor.movePosition(QTextCursor.Down, QTextCursor.MoveAnchor, max(0, lineno - 1))
