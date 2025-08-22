@@ -28,11 +28,12 @@ import os
 import queue
 import traceback
 
+from robko01.tasks.task_ui_qt.utils.stream_redirector import StreamRedirector
+
 from robko01.kinematics.data.steppers_coefficients import SteppersCoefficients
 from robko01.kinematics.kinematics import Kinematics
 from robko01.kinematics.utils.utils import xy2lr
 
-from robko01.utils.stream_redirector import StreamRedirector
 from robko01.utils.thread_timer import ThreadTimer
 from robko01.utils.logger import get_logger
 from robko01.utils.axis_action_controller import AxisActionController
