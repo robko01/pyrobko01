@@ -106,23 +106,6 @@ class GUI(QApplication):
         if self.__controller is None:
             raise ReferenceError("Invalid controller instance.")
 
-        self.__update_timer = ThreadTimer()
-        """Update timer.
-        """
-        self.__update_timer.update_rate = 0.1 # Update time!
-        self.__update_timer.set_cb(self.__update_time_cb)
-
-        self.__axis_controllers = []
-        """Axis controllers.
-        """
-        # Key controllers.
-        self.__axis_controllers.append(AxisActionController(callback=self.__axis_0))
-        self.__axis_controllers.append(AxisActionController(callback=self.__axis_1))
-        self.__axis_controllers.append(AxisActionController(callback=self.__axis_2))
-        self.__axis_controllers.append(AxisActionController(callback=self.__axis_3))
-        self.__axis_controllers.append(AxisActionController(callback=self.__axis_4))
-        self.__axis_controllers.append(AxisActionController(callback=self.__axis_5))
-
         # Kinematics
         self.__kin = Kinematics()
         """Kinematics model.
@@ -188,7 +171,26 @@ class GUI(QApplication):
         """Software grasping lock.
         """
 
+        self.__update_timer = ThreadTimer()
+        """Update timer.
+        """
+        self.__update_timer.update_rate = 0.1 # Update time!
+        self.__update_timer.set_cb(self.__update_time_cb)
+
+        self.__axis_controllers = []
+        """Axis controllers.
+        """
+        # Key controllers.
+        self.__axis_controllers.append(AxisActionController(callback=self.__axis_0))
+        self.__axis_controllers.append(AxisActionController(callback=self.__axis_1))
+        self.__axis_controllers.append(AxisActionController(callback=self.__axis_2))
+        self.__axis_controllers.append(AxisActionController(callback=self.__axis_3))
+        self.__axis_controllers.append(AxisActionController(callback=self.__axis_4))
+        self.__axis_controllers.append(AxisActionController(callback=self.__axis_5))
+
         self.__action_controller = ActionController()
+        """Action controller.
+        """
         self.__action_controller.set_action_cb(self.__action_controller_cb)
 
 #endregion
