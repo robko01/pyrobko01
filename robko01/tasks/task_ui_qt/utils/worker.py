@@ -96,6 +96,7 @@ class Worker(QThread):
         self._gate.set()                   # start in "running"
         self._stepping = False
         self._stop_requested = False
+        self.__g = dict()
 
     # ---- public controls called from UI ----
     def pause(self):
@@ -135,6 +136,9 @@ class Worker(QThread):
                 self._gate.clear()
         return self._trace  # keep tracing subsequent events
 
+    def add_api(self, fx: dict):
+        self.__g.update(fx)
+
     # ---- main runner ----
     def run(self):
         if not self.script_path:
@@ -155,12 +159,14 @@ class Worker(QThread):
             sys.settrace(self._trace)
 
             # globals for executed script: provide an 'output' helper if desired
-            g = {
+            self.add_api({
                 "__name__": "__main__",
                 "__file__": self.script_path,
                 "output": lambda msg: self.output.emit(str(msg)),
-            }
-            exec(code, g, g)
+            })
+
+            # Execute
+            exec(code, self.__g, self.__g)
 
         except SystemExit:
             self.output.emit("Execution stopped by user.\n")
@@ -169,3 +175,4 @@ class Worker(QThread):
         finally:
             sys.settrace(None)
             self.finished.emit()
+    

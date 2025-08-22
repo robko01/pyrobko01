@@ -900,6 +900,7 @@ class GUI(QApplication):
         self.__worker.started.connect(self.on_script_started)
         self.__worker.finished.connect(self.on_script_finished)
         self.__worker.dbg_line.connect(self.on_dbg_line)
+        self.__worker.add_api({"move_j": self.__move_j})
 
 #endregion
 
