@@ -1116,7 +1116,7 @@ class GUI(QApplication):
         self.__window.sldSpeed.valueChanged.connect(self.__sldSpeed_valueChanged)
 
         # Automatic
-        self.__window.pteProgramEditor = ProgramEditor()
+        # self.__window.pteProgramEditor = ProgramEditor()
         self.__window.teConsole.setReadOnly(True)
 
         self.__window.actionNewProgram.triggered.connect(lambda: print("Not Implemented"))
