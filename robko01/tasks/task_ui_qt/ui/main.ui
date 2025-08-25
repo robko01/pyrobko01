@@ -1194,8 +1194,11 @@
      <string>Run</string>
     </property>
     <addaction name="actionRunProgram"/>
-    <addaction name="separator"/>
     <addaction name="actionStopProgram"/>
+    <addaction name="separator"/>
+    <addaction name="actionPause"/>
+    <addaction name="actionContinue"/>
+    <addaction name="actionStep"/>
    </widget>
    <addaction name="menuFile"/>
    <addaction name="menuController"/>
@@ -1252,6 +1255,9 @@
    <property name="shortcut">
     <string>Ctrl+O</string>
    </property>
+   <property name="shortcutVisibleInContextMenu">
+    <bool>true</bool>
+   </property>
   </action>
   <action name="actionSaveProgram">
    <property name="text">
@@ -1259,6 +1265,9 @@
    </property>
    <property name="shortcut">
     <string>Ctrl+S</string>
+   </property>
+   <property name="shortcutVisibleInContextMenu">
+    <bool>true</bool>
    </property>
   </action>
   <action name="actionNewProgram">
@@ -1279,18 +1288,36 @@
   </action>
   <action name="actionRunProgram">
    <property name="text">
-    <string>Run (F5)</string>
+    <string>Run</string>
    </property>
    <property name="shortcut">
     <string>F5</string>
    </property>
+   <property name="shortcutVisibleInContextMenu">
+    <bool>true</bool>
+   </property>
   </action>
   <action name="actionStopProgram">
    <property name="text">
-    <string>Stop (Shift + F5)</string>
+    <string>Stop</string>
    </property>
    <property name="shortcut">
     <string>Shift+F5</string>
+   </property>
+  </action>
+  <action name="actionPause">
+   <property name="text">
+    <string>Pause</string>
+   </property>
+  </action>
+  <action name="actionContinue">
+   <property name="text">
+    <string>Continue</string>
+   </property>
+  </action>
+  <action name="actionStep">
+   <property name="text">
+    <string>Step</string>
    </property>
   </action>
  </widget>
