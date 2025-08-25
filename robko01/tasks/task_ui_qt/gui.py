@@ -29,7 +29,7 @@ import traceback
 
 from robko01.tasks.task_ui_qt.editor.code_editor import CodeEditor
 from robko01.tasks.task_ui_qt.utils.stream_redirector import StreamRedirector
-from robko01.tasks.task_ui_qt.utils.worker import Worker
+from robko01.tasks.task_ui_qt.utils.program_runner import ProgramRunner
 
 from robko01.kinematics.data.steppers_coefficients import SteppersCoefficients
 from robko01.kinematics.kinematics import Kinematics
@@ -482,7 +482,7 @@ class GUI(QApplication):
         path, _ = QFileDialog.getOpenFileName(self.__window, "Load Python Script", "", "Python Files (*.py)")
         if not path:
             return
-        self.__worker.script_path = path
+        self.__program_runner.script_path = path
         with open(path, "r", encoding="utf-8") as f:
             self.__window.pteProgramEditor.setPlainText(f.read())
         self.__window.teConsole.append(f"Loaded script: {path}\n")
@@ -495,18 +495,18 @@ class GUI(QApplication):
 
     @Slot()
     def __run_program(self):
-        if self.__worker is not None:
-            if not self.__worker.isRunning():
+        if self.__program_runner is not None:
+            if not self.__program_runner.isRunning():
 
                 # ensure the latest edits are saved before execution
                 if self.__window.actionSaveProgram.isEnabled():
                     self.__save_program()
 
                 # reset controls
-                self.__worker.continue_()
-                self.__worker._stepping = False
-                self.__worker._stop_requested = False
-                self.__worker.start()
+                self.__program_runner.continue_()
+                self.__program_runner._stepping = False
+                self.__program_runner._stop_requested = False
+                self.__program_runner.start()
 
                 # Lock the UI.
                 self.__window.pbRunProgram.setEnabled(False)
@@ -518,13 +518,13 @@ class GUI(QApplication):
 
     @Slot()
     def __stop_program(self):
-        if self.__worker is not None:
-            self.__worker.stop()
+        if self.__program_runner is not None:
+            self.__program_runner.stop()
 
     @Slot()
     def __pause_program(self):
-        if self.__worker is not None:
-            self.__worker.pause()
+        if self.__program_runner is not None:
+            self.__program_runner.pause()
             # Lock UI.
             self.__window.pbPauseProgram.setEnabled(False)
             self.__window.pbContinueProgram.setEnabled(True)
@@ -532,16 +532,16 @@ class GUI(QApplication):
 
     @Slot()
     def __continue_program(self):
-        if self.__worker is not None:
-            self.__worker.continue_()
+        if self.__program_runner is not None:
+            self.__program_runner.continue_()
             # Lock UI.
             self.__window.pbPauseProgram.setEnabled(True)
             self.__window.pbContinueProgram.setEnabled(False)
 
     @Slot()
     def __step_program(self):
-        if self.__worker is not None:
-            self.__worker.step_once()
+        if self.__program_runner is not None:
+            self.__program_runner.step_once()
             # Lock UI.
             self.__window.pbPauseProgram.setEnabled(False)
             self.__window.pbContinueProgram.setEnabled(True)
@@ -581,14 +581,14 @@ class GUI(QApplication):
     def __init_automatic(self):
 
         # self.__window.pteProgramEditor = CodeEditor()
-        self.__worker = Worker()
+        self.__program_runner = ProgramRunner()
         """Script executor.
         """
-        self.__worker.output.connect(self.__window.teConsole.append)
-        self.__worker.started.connect(self.__on_script_started)
-        self.__worker.finished.connect(self.__on_script_finished)
-        self.__worker.dbg_line.connect(self.__on_dbg_line)
-        self.__worker.add_api({"move_j": self.__move_j})
+        self.__program_runner.output.connect(self.__window.teConsole.append)
+        self.__program_runner.started.connect(self.__on_script_started)
+        self.__program_runner.finished.connect(self.__on_script_finished)
+        self.__program_runner.dbg_line.connect(self.__on_dbg_line)
+        self.__program_runner.add_api({"move_j": self.__move_j})
 
 #endregion
 
@@ -950,8 +950,14 @@ class GUI(QApplication):
 #region Private Methods (Menu)
 
     def __actionExit_triggered(self):
-        print("HOI")
-        pass
+        msg_box = QMessageBox()
+        msg_box.setWindowTitle("Exit?")
+        msg_box.setText("Are you sure you want to exit the application.")
+        msg_box.setStandardButtons(QMessageBox.Yes | QMessageBox.No)
+        msg_box.setDefaultButton(QMessageBox.No)
+        answer = msg_box.exec()
+        if answer == QMessageBox.Yes:
+            sys.exit()
 
     def __actionClear_triggered(self):
 
