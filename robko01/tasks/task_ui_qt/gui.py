@@ -27,7 +27,7 @@ import sys
 import os
 import traceback
 
-from robko01.tasks.task_ui_qt.editor.code_editor import CodeEditor
+from robko01.tasks.task_ui_qt.editor.program_editor import ProgramEditor
 from robko01.tasks.task_ui_qt.utils.stream_redirector import StreamRedirector
 from robko01.tasks.task_ui_qt.utils.program_runner import ProgramRunner
 
@@ -580,7 +580,6 @@ class GUI(QApplication):
 
     def __init_automatic(self):
 
-        # self.__window.pteProgramEditor = CodeEditor()
         self.__program_runner = ProgramRunner()
         """Script executor.
         """
@@ -1117,6 +1116,7 @@ class GUI(QApplication):
         self.__window.sldSpeed.valueChanged.connect(self.__sldSpeed_valueChanged)
 
         # Automatic
+        self.__window.pteProgramEditor = ProgramEditor()
         self.__window.teConsole.setReadOnly(True)
 
         self.__window.actionNewProgram.triggered.connect(lambda: print("Not Implemented"))

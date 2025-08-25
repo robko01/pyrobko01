@@ -57,7 +57,7 @@ from PySide6.QtWidgets import QPlainTextEdit, QTextEdit
 from PySide6.QtCore import QRect, Qt
 from PySide6.QtGui import QPainter, QColor, QTextFormat
 
-class CodeEditor(QPlainTextEdit):
+class ProgramEditor(QPlainTextEdit):
     def __init__(self):
         super().__init__()
         self.line_number_area = LineNumberArea(self)
