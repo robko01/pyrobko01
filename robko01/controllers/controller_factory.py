@@ -30,6 +30,8 @@ from robko01.controllers.orlin369.robko01 import Robko01 as Orko01
 from robko01.controllers.tu_gabrovo.protocol.package_manager import PackageManager as GabkoPM
 from robko01.controllers.tu_gabrovo.robko01 import Robko01 as Gabko01
 
+from robko01.controllers.dummy.robko01 import Robko01 as Dummy
+
 #region File Attributes
 
 __author__ = "Orlin Dimitrov"
@@ -98,17 +100,23 @@ class ControllerFactory:
         elif interface == "udp":
             if kwargs["port"].isnumeric() and kwargs["host"] is not None:
                 communicator = UDPCom(kwargs["host"], int(kwargs["port"]), timeout=timeout)
+        elif interface == "dummy":
+            communicator=object()
         else:
             raise ValueError(f"Communication type is not supported: {interface}")
 
         if controller_name is None:
             raise ValueError("Controller type can not be None.")
 
+        elif controller_name == "dummy":
+            controller = Dummy(communicator)
+
         elif controller_name == "orlin369":
             controller = Orko01(communicator)
 
         elif controller_name == "tugab":
             controller = Gabko01(GabkoPM(kwargs))
+
 
         else:
             raise NotImplemented(f"The specified controller controller name does not have implementation: {controller_name}")

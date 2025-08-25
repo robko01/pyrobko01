@@ -3,7 +3,7 @@
 
 """
 
-Robko 01 - Python Control Software
+Robko 01 - Python Controlftware
 
 Copyright (C) [2020] [Orlin Dimitrov]
 
@@ -21,8 +21,6 @@ You should have received a copy of the GNU General Public License
 along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
 """
-
-from enum import Enum
 
 #region File Attributes
 
@@ -48,24 +46,47 @@ __maintainer__ = "Orlin Dimitrov"
 __email__ = "robko01@8bitclub.com"
 """E-mail of the author."""
 
-__class_name__ = "TaskGUI"
-"""Task name."""
+__status__ = "Debug"
+"""File status."""
 
 #endregion
 
-class Actions(Enum):
-    """Actions
-    """
+import queue
+from robko01.utils.thread_timer import ThreadTimer
+from robko01.utils.actions import Actions
 
-    NONE = 0
+class ActionController():
 
-    SaveCurrentPosition = 15
-    RunStoredPositions = 17
+    def __init__(self):
+        self.__actions_queue = queue.Queue()
+        """Actions queue.
+        """
 
-    UpdateAbsolutePositions = 20
-    UpdateRealtivePositions = 21
-    UpdateSpeeds = 22
-    UpdateOutputs = 23
+        self.__action_update_timer = ThreadTimer()
+        """Action update timer.
+        """
+        self.__action_update_timer.update_rate = 0.1 # Update time!
+        self.__action_update_timer.set_cb(self.__action_timer_cb)
 
-    ClearController = 30
-    ResetController = 31
+        self.__action_cb = None
+        """Action callback.
+        """
+
+    def __action_timer_cb(self):
+        if not self.__actions_queue.empty():
+            action = self.__actions_queue.get()
+            if self.__action_cb is not None:
+                self.__action_cb(action)
+
+    def set_action_cb(self, cb):
+        if cb is not None:
+            self.__action_cb = cb
+
+    def add_action(self, action):
+        self.__actions_queue.put(action)
+
+    def start(self):
+        self.__action_update_timer.start()
+
+    def stop(self):
+        self.__action_update_timer.stop()

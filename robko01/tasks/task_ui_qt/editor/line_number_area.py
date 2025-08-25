@@ -22,8 +22,6 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
 """
 
-from enum import Enum
-
 #region File Attributes
 
 __author__ = "Orlin Dimitrov"
@@ -48,24 +46,21 @@ __maintainer__ = "Orlin Dimitrov"
 __email__ = "robko01@8bitclub.com"
 """E-mail of the author."""
 
-__class_name__ = "TaskGUI"
-"""Task name."""
+__status__ = "Debug"
+"""File status."""
 
 #endregion
 
-class Actions(Enum):
-    """Actions
-    """
+from PySide6.QtWidgets import QWidget
+from PySide6.QtCore import QSize
 
-    NONE = 0
+class LineNumberArea(QWidget):
+    def __init__(self, editor):
+        super().__init__(editor)
+        self.code_editor = editor
 
-    SaveCurrentPosition = 15
-    RunStoredPositions = 17
+    def sizeHint(self):
+        return QSize(self.code_editor.line_number_area_width(), 0)
 
-    UpdateAbsolutePositions = 20
-    UpdateRealtivePositions = 21
-    UpdateSpeeds = 22
-    UpdateOutputs = 23
-
-    ClearController = 30
-    ResetController = 31
+    def paintEvent(self, event):
+        self.code_editor.line_number_area_paint_event(event)

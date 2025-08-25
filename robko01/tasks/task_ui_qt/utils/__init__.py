@@ -22,8 +22,6 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
 """
 
-from enum import Enum
-
 #region File Attributes
 
 __author__ = "Orlin Dimitrov"
@@ -48,24 +46,7 @@ __maintainer__ = "Orlin Dimitrov"
 __email__ = "robko01@8bitclub.com"
 """E-mail of the author."""
 
-__class_name__ = "TaskGUI"
-"""Task name."""
+__status__ = "Debug"
+"""File status."""
 
 #endregion
-
-class Actions(Enum):
-    """Actions
-    """
-
-    NONE = 0
-
-    SaveCurrentPosition = 15
-    RunStoredPositions = 17
-
-    UpdateAbsolutePositions = 20
-    UpdateRealtivePositions = 21
-    UpdateSpeeds = 22
-    UpdateOutputs = 23
-
-    ClearController = 30
-    ResetController = 31
