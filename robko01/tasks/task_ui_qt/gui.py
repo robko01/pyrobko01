@@ -172,80 +172,15 @@ class GUI(QApplication):
         """Software grasping lock.
         """
 
-        self.__update_timer = ThreadTimer()
-        """Update timer.
-        """
-        self.__update_timer.update_rate = 0.1 # Update time!
-        self.__update_timer.set_cb(self.__update_time_cb)
+        self.__init_update_timer()
 
-        self.__axis_controllers = []
-        """Axis controllers.
-        """
-        # Key controllers.
-        self.__axis_controllers.append(AxisActionController(callback=self.__axis_0))
-        self.__axis_controllers.append(AxisActionController(callback=self.__axis_1))
-        self.__axis_controllers.append(AxisActionController(callback=self.__axis_2))
-        self.__axis_controllers.append(AxisActionController(callback=self.__axis_3))
-        self.__axis_controllers.append(AxisActionController(callback=self.__axis_4))
-        self.__axis_controllers.append(AxisActionController(callback=self.__axis_5))
+        self.__init_axises_controllers()
 
-        self.__action_controller = ActionController()
-        """Action controller.
-        """
-        self.__action_controller.set_action_cb(self.__action_controller_cb)
+        self.__init_action_controller()
 
 #endregion
 
-#region Private Methods
-
-    def __update_port_a_inputs(self):
-
-        self.__window.cbIn0.setChecked(not bool(1 & self.__port_a_inputs))
-        self.__window.cbIn1.setChecked(not bool(2 & self.__port_a_inputs))
-        self.__window.cbIn2.setChecked(not bool(4 & self.__port_a_inputs))
-        self.__window.cbIn3.setChecked(not bool(8 & self.__port_a_inputs))
-        self.__window.cbIn4.setChecked(not bool(16 & self.__port_a_inputs))
-        self.__window.cbIn5.setChecked(not bool(32 & self.__port_a_inputs))
-        self.__window.cbIn6.setChecked(not bool(64 & self.__port_a_inputs))
-        self.__window.cbIn7.setChecked(not bool(128 & self.__port_a_inputs))
-
-    def __update_port_a_outputs(self):
-
-        self.__port_a_outputs = 0
-
-        self.__port_a_outputs += self.__window.cbOut0.isChecked() * 1
-        self.__port_a_outputs += self.__window.cbOut1.isChecked() * 2
-        self.__port_a_outputs += self.__window.cbOut2.isChecked() * 4
-        self.__port_a_outputs += self.__window.cbOut3.isChecked() * 8
-        self.__port_a_outputs += self.__window.cbOut4.isChecked() * 16
-        self.__port_a_outputs += self.__window.cbOut5.isChecked() * 32
-        self.__port_a_outputs += self.__window.cbOut6.isChecked() * 64
-        self.__port_a_outputs += self.__window.cbOut7.isChecked() * 128
-
-        self.__action_controller.add_action({
-                "action": Actions.UpdateOutputs,
-                "data": self.__port_a_outputs
-                })
-
-    def __update_joint_pos(self):
-
-        self.__window.lcdP0.display(self.__current_position[0])
-        self.__window.lcdV0.display(self.__current_position[1])
-
-        self.__window.lcdP1.display(self.__current_position[2])
-        self.__window.lcdV1.display(self.__current_position[3])
-
-        self.__window.lcdP2.display(self.__current_position[4])
-        self.__window.lcdV2.display(self.__current_position[5])
-
-        self.__window.lcdP3.display(self.__current_position[6])
-        self.__window.lcdV3.display(self.__current_position[7])
-
-        self.__window.lcdP4.display(self.__current_position[8])
-        self.__window.lcdV4.display(self.__current_position[9])
-
-        self.__window.lcdP5.display(self.__current_position[10])
-        self.__window.lcdV5.display(self.__current_position[11])
+#region Private Methods (Update Timer)
 
     def __update_displays_animation(self):
 
@@ -361,6 +296,55 @@ class GUI(QApplication):
         self.__window.lcdP.display(d_pos[3])
         self.__window.lcdR.display(d_pos[4])
 
+    def __update_joint_pos(self):
+
+        self.__window.lcdP0.display(self.__current_position[0])
+        self.__window.lcdV0.display(self.__current_position[1])
+
+        self.__window.lcdP1.display(self.__current_position[2])
+        self.__window.lcdV1.display(self.__current_position[3])
+
+        self.__window.lcdP2.display(self.__current_position[4])
+        self.__window.lcdV2.display(self.__current_position[5])
+
+        self.__window.lcdP3.display(self.__current_position[6])
+        self.__window.lcdV3.display(self.__current_position[7])
+
+        self.__window.lcdP4.display(self.__current_position[8])
+        self.__window.lcdV4.display(self.__current_position[9])
+
+        self.__window.lcdP5.display(self.__current_position[10])
+        self.__window.lcdV5.display(self.__current_position[11])
+
+    def __update_port_a_inputs(self):
+
+        self.__window.cbIn0.setChecked(not bool(1 & self.__port_a_inputs))
+        self.__window.cbIn1.setChecked(not bool(2 & self.__port_a_inputs))
+        self.__window.cbIn2.setChecked(not bool(4 & self.__port_a_inputs))
+        self.__window.cbIn3.setChecked(not bool(8 & self.__port_a_inputs))
+        self.__window.cbIn4.setChecked(not bool(16 & self.__port_a_inputs))
+        self.__window.cbIn5.setChecked(not bool(32 & self.__port_a_inputs))
+        self.__window.cbIn6.setChecked(not bool(64 & self.__port_a_inputs))
+        self.__window.cbIn7.setChecked(not bool(128 & self.__port_a_inputs))
+
+    def __update_port_a_outputs(self):
+
+        self.__port_a_outputs = 0
+
+        self.__port_a_outputs += self.__window.cbOut0.isChecked() * 1
+        self.__port_a_outputs += self.__window.cbOut1.isChecked() * 2
+        self.__port_a_outputs += self.__window.cbOut2.isChecked() * 4
+        self.__port_a_outputs += self.__window.cbOut3.isChecked() * 8
+        self.__port_a_outputs += self.__window.cbOut4.isChecked() * 16
+        self.__port_a_outputs += self.__window.cbOut5.isChecked() * 32
+        self.__port_a_outputs += self.__window.cbOut6.isChecked() * 64
+        self.__port_a_outputs += self.__window.cbOut7.isChecked() * 128
+
+        self.__action_controller.add_action({
+                "action": Actions.UpdateOutputs,
+                "data": self.__port_a_outputs
+                })
+
     def __update_time_cb(self):
 
         try:
@@ -391,9 +375,16 @@ class GUI(QApplication):
         except Exception as exc:
             self.__logger.error(traceback.format_exc())
 
+    def __init_update_timer(self):
+        self.__update_timer = ThreadTimer()
+        """Update timer.
+        """
+        self.__update_timer.update_rate = 0.1 # Update time!
+        self.__update_timer.set_cb(self.__update_time_cb)
+
 #endregion
 
-#region Private Methods (Action Control)
+#region Private Methods (Action Controller)
 
     def __action_controller_cb(self, payload):
 
@@ -476,9 +467,132 @@ class GUI(QApplication):
         while self.__axis_states != 0:
             pass
 
+    def __init_action_controller(self):
+        self.__action_controller = ActionController()
+        """Action controller.
+        """
+        self.__action_controller.set_action_cb(self.__action_controller_cb)
+
 #endregion
 
-#region Private Methods (Axises CB)
+#region Private Methods (Automatic Control)
+
+    @Slot()
+    def __load_program(self):
+        path, _ = QFileDialog.getOpenFileName(self.__window, "Load Python Script", "", "Python Files (*.py)")
+        if not path:
+            return
+        self.__worker.script_path = path
+        with open(path, "r", encoding="utf-8") as f:
+            self.__window.pteProgramEditor.setPlainText(f.read())
+        self.__window.teConsole.append(f"Loaded script: {path}\n")
+        self.__window.actionSaveProgram.setEnabled(True)
+        self.__window.pbRunProgram.setEnabled(True)
+
+    @Slot()
+    def __save_program(self):
+        pass
+
+    @Slot()
+    def __run_program(self):
+        if self.__worker is not None:
+            if not self.__worker.isRunning():
+
+                # ensure the latest edits are saved before execution
+                if self.__window.actionSaveProgram.isEnabled():
+                    self.__save_program()
+
+                # reset controls
+                self.__worker.continue_()
+                self.__worker._stepping = False
+                self.__worker._stop_requested = False
+                self.__worker.start()
+
+                # Lock the UI.
+                self.__window.pbRunProgram.setEnabled(False)
+                for a in (self.__window.pbStopProgram, 
+                        self.__window.pbPauseProgram,
+                        self.__window.pbContinueProgram,
+                        self.__window.pbStepProgram):
+                    a.setEnabled(True)
+
+    @Slot()
+    def __stop_program(self):
+        if self.__worker is not None:
+            self.__worker.stop()
+
+    @Slot()
+    def __pause_program(self):
+        if self.__worker is not None:
+            self.__worker.pause()
+            # Lock UI.
+            self.__window.pbPauseProgram.setEnabled(False)
+            self.__window.pbContinueProgram.setEnabled(True)
+            self.__window.pbStepProgram.setEnabled(True)
+
+    @Slot()
+    def __continue_program(self):
+        if self.__worker is not None:
+            self.__worker.continue_()
+            # Lock UI.
+            self.__window.pbPauseProgram.setEnabled(True)
+            self.__window.pbContinueProgram.setEnabled(False)
+
+    @Slot()
+    def __step_program(self):
+        if self.__worker is not None:
+            self.__worker.step_once()
+            # Lock UI.
+            self.__window.pbPauseProgram.setEnabled(False)
+            self.__window.pbContinueProgram.setEnabled(True)
+
+    @Slot()
+    def __on_script_started(self):
+        self.__window.teConsole.append("Script started...\n")
+
+        # Redirect STDOUT
+        self.__original_stdout = sys.stdout
+        sys.stdout = StreamRedirector(self.__window.teConsole)
+
+    @Slot()
+    def __on_script_finished(self):
+        self.__window.teConsole.append("Script finished.\n")
+
+        self.__window.pbStopProgram.setEnabled(False)
+        self.__window.pbPauseProgram.setEnabled(False)
+        self.__window.pbContinueProgram.setEnabled(False)
+        self.__window.pbStepProgram.setEnabled(False)
+        self.__window.pbRunProgram.setEnabled(True)
+
+        # Redirect STDOUT
+        sys.stdout = self.__original_stdout
+
+    @Slot(int, str)
+    def __on_dbg_line(self, lineno: int, src: str):
+        # show current line and bring it into view
+        self.__window.statusBar().showMessage(f"Line {lineno}: {src}")
+        # print(f"Line {lineno}: {src}")
+        cursor = self.__window.pteProgramEditor.textCursor()
+        cursor.movePosition(QTextCursor.Start)
+        cursor.movePosition(QTextCursor.Down, QTextCursor.MoveAnchor, max(0, lineno - 1))
+        self.__window.pteProgramEditor.setTextCursor(cursor)
+        self.__window.pteProgramEditor.ensureCursorVisible()
+
+    def __init_automatic(self):
+
+        # self.__window.pteProgramEditor = CodeEditor()
+        self.__worker = Worker()
+        """Script executor.
+        """
+        self.__worker.output.connect(self.__window.teConsole.append)
+        self.__worker.started.connect(self.__on_script_started)
+        self.__worker.finished.connect(self.__on_script_finished)
+        self.__worker.dbg_line.connect(self.__on_dbg_line)
+        self.__worker.add_api({"move_j": self.__move_j})
+
+#endregion
+
+#region Private Methods (Axises Controllers)
 
     def __axis_0(self, speed):
 
@@ -534,6 +648,18 @@ class GUI(QApplication):
                 "action": Actions.UpdateSpeeds,
                 "data": self.__current_speed
                 })
+
+    def __init_axises_controllers(self):
+        self.__axis_controllers = []
+        """Axis controllers.
+        """
+        # Key controllers.
+        self.__axis_controllers.append(AxisActionController(callback=self.__axis_0))
+        self.__axis_controllers.append(AxisActionController(callback=self.__axis_1))
+        self.__axis_controllers.append(AxisActionController(callback=self.__axis_2))
+        self.__axis_controllers.append(AxisActionController(callback=self.__axis_3))
+        self.__axis_controllers.append(AxisActionController(callback=self.__axis_4))
+        self.__axis_controllers.append(AxisActionController(callback=self.__axis_5))
 
 #endregion
 
@@ -780,127 +906,27 @@ class GUI(QApplication):
 
 #endregion
 
-#region Private Methods (Automatic Control)
+#region Private Methods (Buttons)
 
-    @Slot()
-    def __load_program(self):
-        path, _ = QFileDialog.getOpenFileName(self.__window, "Load Python Script", "", "Python Files (*.py)")
-        if not path:
-            return
-        self.__worker.script_path = path
-        with open(path, "r", encoding="utf-8") as f:
-            self.__window.pteProgramEditor.setPlainText(f.read())
-        self.__window.teConsole.append(f"Loaded script: {path}\n")
-        self.__window.actionSaveProgram.setEnabled(True)
-        self.__window.pbRunProgram.setEnabled(True)
+    def __diff_stop(self):
+        self.__axis_controllers[3].stop()
+        self.__axis_controllers[4].stop()
 
-    @Slot()
-    def __save_program(self):
-        pass
+    def __btnPUp_pressed(self):
+        self.__axis_controllers[3].set_ccw()
+        self.__axis_controllers[4].set_cw()
 
-    @Slot()
-    def __run_program(self):
-        if self.__worker is not None:
-            if not self.__worker.isRunning():
+    def __btnPDown_pressed(self):
+        self.__axis_controllers[3].set_cw()
+        self.__axis_controllers[4].set_ccw()
 
-                # ensure the latest edits are saved before execution
-                if self.__window.actionSaveProgram.isEnabled():
-                    self.__save_program()
+    def __btnRCW_pressed(self):
+        self.__axis_controllers[3].set_cw()
+        self.__axis_controllers[4].set_cw()
 
-                # reset controls
-                self.__worker.continue_()
-                self.__worker._stepping = False
-                self.__worker._stop_requested = False
-                self.__worker.start()
-
-                # Lock the UI.
-                self.__window.pbRunProgram.setEnabled(False)
-                for a in (self.__window.pbStopProgram, 
-                        self.__window.pbPauseProgram,
-                        self.__window.pbContinueProgram,
-                        self.__window.pbStepProgram):
-                    a.setEnabled(True)
-
-        #          {
-        #              '__name__': '__main__',
-        #              '__file__': "main.py",
-        #              'output': self.__output_func,
-        #              "move_j": self.__move_j
-        #              })
-
-    @Slot()
-    def __stop_program(self):
-        if self.__worker is not None:
-            self.__worker.stop()
-
-    @Slot()
-    def __pause_program(self):
-        if self.__worker is not None:
-            self.__worker.pause()
-            # Lock UI.
-            self.__window.pbPauseProgram.setEnabled(False)
-            self.__window.pbContinueProgram.setEnabled(True)
-            self.__window.pbStepProgram.setEnabled(True)
-
-    @Slot()
-    def __continue_program(self):
-        if self.__worker is not None:
-            self.__worker.continue_()
-            # Lock UI.
-            self.__window.pbPauseProgram.setEnabled(True)
-            self.__window.pbContinueProgram.setEnabled(False)
-
-    @Slot()
-    def __step_program(self):
-        if self.__worker is not None:
-            self.__worker.step_once()
-            # Lock UI.
-            self.__window.pbPauseProgram.setEnabled(False)
-            self.__window.pbContinueProgram.setEnabled(True)
-
-    @Slot()
-    def on_script_started(self):
-        self.__window.teConsole.append("Script started...\n")
-
-        # Redirect STDOUT
-        self.__original_stdout = sys.stdout
-        sys.stdout = StreamRedirector(self.__window.teConsole)
-
-    @Slot()
-    def on_script_finished(self):
-        self.__window.teConsole.append("Script finished.\n")
-
-        self.__window.pbStopProgram.setEnabled(False)
-        self.__window.pbPauseProgram.setEnabled(False)
-        self.__window.pbContinueProgram.setEnabled(False)
-        self.__window.pbStepProgram.setEnabled(False)
-        self.__window.pbRunProgram.setEnabled(True)
-
-        # Redirect STDOUT
-        sys.stdout = self.__original_stdout
-
-    @Slot(int, str)
-    def on_dbg_line(self, lineno: int, src: str):
-        # show current line and bring it into view
-        self.__window.statusBar().showMessage(f"Line {lineno}: {src}")
-        # print(f"Line {lineno}: {src}")
-        cursor = self.__window.pteProgramEditor.textCursor()
-        cursor.movePosition(QTextCursor.Start)
-        cursor.movePosition(QTextCursor.Down, QTextCursor.MoveAnchor, max(0, lineno - 1))
-        self.__window.pteProgramEditor.setTextCursor(cursor)
-        self.__window.pteProgramEditor.ensureCursorVisible()
-
-    def __init_automatic(self):
-
-        # self.__window.pteProgramEditor = CodeEditor()
-        self.__worker = Worker()
-        """Script executor.
-        """
-        self.__worker.output.connect(self.__window.teConsole.append)
-        self.__worker.started.connect(self.on_script_started)
-        self.__worker.finished.connect(self.on_script_finished)
-        self.__worker.dbg_line.connect(self.on_dbg_line)
-        self.__worker.add_api({"move_j": self.__move_j})
+    def __btnRCCW_pressed(self):
+        self.__axis_controllers[3].set_ccw()
+        self.__axis_controllers[4].set_ccw()
 
 #endregion
 
@@ -987,30 +1013,6 @@ class GUI(QApplication):
         msg_box.setStandardButtons(QMessageBox.Ok)
         msg_box.setDefaultButton(QMessageBox.Ok)
         msg_box.exec() # Returns keys answer.
-
-#endregion
-
-#region Private Methods (Buttons)
-
-    def __diff_stop(self):
-        self.__axis_controllers[3].stop()
-        self.__axis_controllers[4].stop()
-
-    def __btnPUp_pressed(self):
-        self.__axis_controllers[3].set_ccw()
-        self.__axis_controllers[4].set_cw()
-
-    def __btnPDown_pressed(self):
-        self.__axis_controllers[3].set_cw()
-        self.__axis_controllers[4].set_ccw()
-
-    def __btnRCW_pressed(self):
-        self.__axis_controllers[3].set_cw()
-        self.__axis_controllers[4].set_cw()
-
-    def __btnRCCW_pressed(self):
-        self.__axis_controllers[3].set_ccw()
-        self.__axis_controllers[4].set_ccw()
 
 #endregion
 
