@@ -60,22 +60,6 @@ class ThreadTimer():
 
 #region Attributes
 
-    __exit_event = None
-    """Exit event.
-    """
-
-    __thread = None
-    """GUI thread.
-    """
-
-    __update_rate = 0.1
-    """Update rate in seconds.
-    """
-
-    __callback = None
-    """Callback function.
-    """
-
 #endregion
 
 #region Properties
@@ -102,9 +86,25 @@ class ThreadTimer():
 
 #region Constructor
 
-    def __init__(self):
+    def __init__(self, name=__name__):
 
-        pass
+        self.__exit_event = None
+        """Exit event.
+        """
+
+        self.__thread = None
+        """GUI thread.
+        """
+
+        self.__update_rate = 0.1
+        """Update rate in seconds.
+        """
+
+        self.__callback = None
+        """Callback function.
+        """
+
+        self.__name = name
 
 #endregion
 
@@ -148,6 +148,7 @@ class ThreadTimer():
 
         if self.__thread is not None:
             self.__thread.daemon = True
+            self.__thread.name = self.__name
             self.__thread.start()
 
     def stop(self):
