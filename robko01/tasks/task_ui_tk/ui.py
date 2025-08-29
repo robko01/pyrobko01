@@ -158,7 +158,7 @@ class GUI():
     """
 
     __jsc = None
-    """Joiystick controller.
+    """Joystick controller.
     """
 
     __kb_key_state = ""
@@ -183,7 +183,7 @@ class GUI():
 
         self.__actions_queue = queue.Queue()
 
-        self.__action_update_timer = ThreadTimer()
+        self.__action_update_timer = ThreadTimer("Action update timer.")
         self.__action_update_timer.update_rate = 0.01
         self.__action_update_timer.set_cb(self.__action_timer_cb)
 
@@ -205,7 +205,7 @@ class GUI():
 
 #endregion
 
-#region Private Methods (Autmaton)
+#region Private Methods (Automaton)
 
     def __init_automation(self):
 
