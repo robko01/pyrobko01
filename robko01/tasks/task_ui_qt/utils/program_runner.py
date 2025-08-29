@@ -22,6 +22,14 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
 """
 
+import sys
+import threading
+import linecache
+import traceback
+
+from PySide6.QtCore import Signal
+from PySide6.QtCore import QThread
+
 #region File Attributes
 
 __author__ = "Orlin Dimitrov"
@@ -50,10 +58,6 @@ __status__ = "Debug"
 """File status."""
 
 #endregion
-
-import sys, threading, linecache, traceback
-
-from PySide6.QtCore import Signal, QThread
 
 class ProgramRunner(QThread):
     """
@@ -209,5 +213,5 @@ class ProgramRunner(QThread):
         finally:
             sys.settrace(None)
             self.finished.emit()
-    
+
 #endregion

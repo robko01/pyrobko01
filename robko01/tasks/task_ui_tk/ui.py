@@ -71,7 +71,7 @@ __email__ = "robko01@8bitclub.com"
 """E-mail of the author."""
 
 __class_name__ = "GUI"
-"""Task name."""
+"""Class name."""
 
 #endregion
 

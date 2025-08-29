@@ -22,6 +22,12 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
 """
 
+from robko01.tasks.task_ui_qt.editor.line_number_area import LineNumberArea
+
+from PySide6.QtWidgets import QPlainTextEdit, QTextEdit
+from PySide6.QtCore import QRect, Qt
+from PySide6.QtGui import QPainter, QColor, QTextFormat
+
 #region File Attributes
 
 __author__ = "Orlin Dimitrov"
@@ -51,13 +57,10 @@ __status__ = "Debug"
 
 #endregion
 
-from robko01.tasks.task_ui_qt.editor.line_number_area import LineNumberArea
-
-from PySide6.QtWidgets import QPlainTextEdit, QTextEdit
-from PySide6.QtCore import QRect, Qt
-from PySide6.QtGui import QPainter, QColor, QTextFormat
-
 class ProgramEditor(QPlainTextEdit):
+    """program editor.
+    """
+
     def __init__(self):
         super().__init__()
         self.line_number_area = LineNumberArea(self)

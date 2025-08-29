@@ -50,7 +50,7 @@ __email__ = "robko01@8bitclub.com"
 """E-mail of the author."""
 
 __class_name__ = "ThreadTimer"
-"""Task name."""
+"""Class name."""
 
 #endregion
 

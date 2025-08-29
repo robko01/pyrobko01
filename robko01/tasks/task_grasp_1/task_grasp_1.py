@@ -53,7 +53,7 @@ __status__ = "Debug"
 """File status."""
 
 __class_name__ = "TaskGrasp1"
-"""Task name."""
+"""Class name."""
 
 #endregion
 

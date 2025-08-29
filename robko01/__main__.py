@@ -66,21 +66,21 @@ TASK_MANAGER = None
 
 # Create log.
 crate_log_file()
-logger = get_logger(__name__)
+LOGGER = get_logger(__name__)
 
 def interrupt_handler(signum, frame):
     """Interrupt handler."""
 
-    global TASK_MANAGER, logger
+    global TASK_MANAGER, LOGGER
 
     if signum == 2:
-        logger.warning("Stopped by interrupt.")
+        LOGGER.warning("Stopped by interrupt.")
 
     elif signum == 15:
-        logger.warning("Stopped by termination.")
+        LOGGER.warning("Stopped by termination.")
 
     else:
-        logger.warning("Signal handler called. Signal: {}; Frame: {}".format(signum, frame))
+        LOGGER.warning(f"Signal handler called. Signal: {signum}; Frame: {frame}")
 
     if TASK_MANAGER is not None:
         TASK_MANAGER.stop()
@@ -89,7 +89,7 @@ def main():
     """Main function.
     """
 
-    global TASK_MANAGER, logger
+    global TASK_MANAGER, LOGGER
 
     # Add signal handler.
     signal.signal(signal.SIGINT, interrupt_handler)
@@ -119,7 +119,7 @@ def main():
 
     names = TASK_MANAGER.list_tasks()
     for name in names:
-        logger.info("Found task: %s", name)
+        LOGGER.info("Found task: %s", name)
 
     TASK_MANAGER.start(args.task)
 
@@ -129,4 +129,4 @@ if __name__ == "__main__":
     try:
         sys.exit(main())
     except Exception as e:
-        logger.error(traceback.format_exc())
+        LOGGER.error(traceback.format_exc())

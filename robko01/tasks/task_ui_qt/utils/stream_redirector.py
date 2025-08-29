@@ -80,6 +80,7 @@ class StreamRedirector:
         self.text_edit.append(message)
 
     def flush(self):
-        pass
+        """Flush
+        """
 
 #endregion

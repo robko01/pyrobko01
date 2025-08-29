@@ -54,7 +54,7 @@ __status__ = "Debug"
 """File status."""
 
 __class_name__ = "TaskTemplate"
-"""Task name."""
+"""Class name."""
 
 #endregion
 

@@ -52,7 +52,7 @@ __email__ = "robko01@8bitclub.com"
 """E-mail of the author."""
 
 __class_name__ = "TaskUI"
-"""Task name."""
+"""Class name."""
 
 #endregion
 
@@ -77,6 +77,8 @@ class TaskUI(BaseTask):
         """Logger
         """
 
+        self.__ui = GUI(controller=self._controller)
+
 #endregion
 
 #region Interface Methods
@@ -87,9 +89,6 @@ class TaskUI(BaseTask):
         if self.__logger is None:
             self.__logger = get_logger(__name__)
 
-        self._start_cont()
-
-        self.__ui = GUI(controller=self._controller)
         self.__ui.start()
 
     def stop(self):

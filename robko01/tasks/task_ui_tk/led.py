@@ -50,23 +50,29 @@ __maintainer__ = "Orlin Dimitrov"
 __email__ = "robko01@8bitclub.com"
 """E-mail of the author."""
 
-__class_name__ = "TaskGUI"
-"""Task name."""
+__class_name__ = "LED"
+"""Class name."""
 
 #endregion
 
 class LedShape(Enum):
+    """LED Shape
+    """
     SQUARE      = 1
     ROUND       = 2
     ARROW       = 3
 
 class LedPoint(Enum):
+    """LED Point
+    """
     DOWN  = 0
     UP    = 1
     RIGHT = 2
     LEFT  = 3
 
 class LedStatus(Enum):
+    """LED Status
+    """
     OFF   = 1
     ON    = 2
     WARN  = 3
@@ -74,6 +80,8 @@ class LedStatus(Enum):
     SET   = 5
 
 class LedColor:
+    """LED colors.
+    """
     PANEL     = '#545454'
     OFF       = '#656565'
     ON        = '#00FF33'
@@ -81,13 +89,14 @@ class LedColor:
     ALARM     = '#ff4422'
 
 class LED:
-
+    """UI LED class.
+    """
 #region Constructor
 
-    def __init__(self, master=None, width=25, height=25, 
+    def __init__(self, master=None, width=25, height=25,
                  appearance=FLAT,
-                 status=LedStatus.ON, bd=1, 
-                 bg=None, 
+                 status=LedStatus.ON, bd=1,
+                 bg=None,
                  shape=LedShape.SQUARE, outline="",
                  blink=0, blinkrate=1,
                  orient=LedPoint.UP,
@@ -103,7 +112,7 @@ class LED:
         self.specialColor = '#00ffdd'
         self.status       = status
         self.blink        = blink
-        self.blinkrate    = int(blinkrate)
+        self.blink_rate    = int(blinkrate)
         self.on           = 0
         self.onState      = None
 
@@ -111,27 +120,27 @@ class LED:
             bg = LedColor.PANEL
 
         ## Base frame to contain light
-        self.frame=Frame(master, relief=appearance, bg=bg, bd=bd, 
+        self.frame=Frame(master, relief=appearance, bg=bg, bd=bd,
                          takefocus=takefocus)
 
         basesize = width
         d = center = int(basesize/2)
 
         if self.shape == LedShape.SQUARE:
-            self.canvas=Canvas(self.frame, height=height, width=width, 
+            self.canvas=Canvas(self.frame, height=height, width=width,
                                bg=bg, bd=0, highlightthickness=0)
 
             self.light=self.canvas.create_rectangle(0, 0, width, height,
                                                     fill=LedColor.ON)
         elif self.shape == LedShape.ROUND:
             r = int((basesize-2)/2)
-            self.canvas=Canvas(self.frame, width=width, height=width, 
+            self.canvas=Canvas(self.frame, width=width, height=width,
                                highlightthickness=0, bg=bg, bd=0)
             if bd > 0:
-                self.border=self.canvas.create_oval(center-r, center-r, 
+                self.border=self.canvas.create_oval(center-r, center-r,
                                                     center+r, center+r)
                 r = r - bd
-            self.light=self.canvas.create_oval(center-r-1, center-r-1, 
+            self.light=self.canvas.create_oval(center-r-1, center-r-1,
                                center+r, center+r, fill=LedColor.ON,
                                outline=outline)
         else:  # Default is an ARROW
@@ -160,33 +169,54 @@ class LED:
 #region Public Methods
 
     def turnon(self):
+        """Turn on
+        """
         self.status = LedStatus.ON
-        if not self.blink: self.update()
+        if not self.blink:
+            self.update()
 
     def turnoff(self):
+        """Turn off
+        """
         self.status = LedStatus.OFF
-        if not self.blink: self.update()
+        if not self.blink:
+            self.update()
 
     def alarm(self):
+        """Set alarm
+        """
         self.status = LedStatus.ALARM
-        if not self.blink: self.update()
+        if not self.blink:
+            self.update()
 
     def warn(self):
+        """Set Warn
+        """
         self.status = LedStatus.WARN
-        if not self.blink: self.update()
+        if not self.blink:
+            self.update()
 
     def set(self, color):
+        """Set the color.
+
+        Args:
+            color (int): Color
+        """
         self.status       = LedStatus.SET
         self.specialColor = color
         self.update()
 
-    def blinkon(self):
+    def blink_on(self):
+        """Blink on
+        """
         if not self.blink:
             self.blink   = 1
             self.onState = self.status
             self.update()
 
-    def blinkoff(self):
+    def blink_off(self):
+        """Blink off
+        """
         if self.blink:
             self.blink   = 0
             self.status  = self.onState
@@ -194,20 +224,27 @@ class LED:
             self.on      = 0
             self.update()
 
-    def blinkstate(self, blinkstate):
-        if blinkstate:
-            self.blinkon()
+    def blink_state(self, state):
+        """Blink state
+
+        Args:
+            state (bool): Blink state.
+        """
+        if state:
+            self.blink_on()
         else:
-            self.blinkoff()
+            self.blink_off()
 
     def update(self):
+        """Update the state of the LED.
+        """
         # First do the blink, if set to blink
         if self.blink:
             if self.on:
                 if not self.onState:
                     self.onState = self.status
                 self.status  = LedStatus.OFF
-                self.on = 0                            
+                self.on = 0
             else:
                 if self.onState:
                     self.status = self.onState     # Current ON color
@@ -227,6 +264,6 @@ class LED:
         self.canvas.update_idletasks()
 
         if self.blink:
-            self.frame.after(self.blinkrate * 1000, self.update)
+            self.frame.after(self.blink_rate * 1000, self.update)
 
 #endregion
