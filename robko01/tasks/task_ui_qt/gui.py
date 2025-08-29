@@ -376,7 +376,7 @@ class GUI(QApplication):
             self.__logger.error(traceback.format_exc())
 
     def __init_update_timer(self):
-        self.__update_timer = ThreadTimer()
+        self.__update_timer = ThreadTimer("UI update timer.")
         """Update timer.
         """
         self.__update_timer.update_rate = 0.1 # Update time!
