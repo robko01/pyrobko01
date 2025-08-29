@@ -76,98 +76,10 @@ __class_name__ = "GUI"
 #endregion
 
 class GUI():
+    """TKinter based UI.
+    """
 
 #region Attributes
-
-    __logger = None
-    """Logger module.
-    """
-
-    __master = None
-    """Form master object.
-    """
-
-    __frm_tab_man = None
-    """Form tab manual.
-    """
-
-    __frm_tab_auto = None
-    """Forma tab auto.
-    """
-
-    __frm_port_a_input_leds = []
-    """Port A input LEDs.
-    """
-
-    __frm_port_a_output_chk = []
-    """Port A outputs Checks.
-    """
-
-    __frm_axis_labels = []
-    """Axis labels.
-    """
-
-    __frm_axis_control_leds = []
-    """Axis control LEDs.
-    """
-
-    __frm_axis_controllers = []
-    """Axis controllers.
-    """
-
-    __actions_queue = None
-    """Actions queue.
-    """
-
-    __controller = None
-    """Robot controller.
-    """
-
-    __current_speed = [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0]
-    """Axis speeds.
-    """
-
-    __current_position = [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0]
-    """Current end-efector position.
-    """
-
-    __axis_states = 0
-    """Axis action states.
-    """
-
-    __port_a_inputs = 0
-    """Port A inputs.
-    """
-
-    __port_a_outputs = 0
-    """Port A outputs.
-    """
-
-    __bit_weight = [128, 64, 32, 16, 8, 4, 2, 1]
-
-    __dead_zone = 0.2
-    """Joystick analogs dead zone.
-    """
-
-    __jsax_to_rbtax = {0:0, 1:1, 2:4, 3:2, 4:5}
-    """Joystick controller map to robot axis.
-    """
-
-    __jsbtn_to_rbtoc = {0:6}
-    """Joystick controller map to robot axis.
-    """
-
-    __jsc = None
-    """Joystick controller.
-    """
-
-    __kb_key_state = ""
-    """Keyboard key state.
-    """
-
-    __block_grasping = False
-    """Block grasping action flag.
-    """
 
 #endregion
 
@@ -180,6 +92,17 @@ class GUI():
 
         if self.__logger is None:
             self.__logger = get_logger(__name__)
+
+        self.__bv_enable_kbc = None
+        self.__bv_enable_jsc = None
+        self.__bid_press = None
+        self.__bid_release = None
+        self.__lbl_pos = None
+        self.__led_kb_state = None
+        self.__lbl_kb_status = None
+        self.__led_js_state = None
+        self.__frm_status_frame = None
+        self.__notebook = None
 
         self.__actions_queue = queue.Queue()
 
@@ -203,6 +126,100 @@ class GUI():
         self.__kin = Kinematics()
         self.__sc = SteppersCoefficients()
 
+        self.__max_speed = 0
+        self.__sldr_speed = 0
+        self.__is_running = False
+
+        self.__logger = None
+        """Logger module.
+        """
+
+        self.__master = None
+        """Form master object.
+        """
+
+        self.__frm_tab_man = None
+        """Form tab manual.
+        """
+
+        self.__frm_tab_auto = None
+        """Forma tab auto.
+        """
+
+        self.__frm_port_a_input_leds = []
+        """Port A input LEDs.
+        """
+
+        self.__frm_port_a_output_chk = []
+        """Port A outputs Checks.
+        """
+
+        self.__frm_axis_labels = []
+        """Axis labels.
+        """
+
+        self.__frm_axis_control_leds = []
+        """Axis control LEDs.
+        """
+
+        self.__frm_axis_controllers = []
+        """Axis controllers.
+        """
+
+        self.__actions_queue = None
+        """Actions queue.
+        """
+
+        self.__controller = None
+        """Robot controller.
+        """
+
+        self.__current_speed = [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0]
+        """Axis speeds.
+        """
+
+        self.__current_position = [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0]
+        """Current end-efector position.
+        """
+
+        self.__axis_states = 0
+        """Axis action states.
+        """
+
+        self.__port_a_inputs = 0
+        """Port A inputs.
+        """
+
+        self.__port_a_outputs = 0
+        """Port A outputs.
+        """
+
+        self.__bit_weight = [128, 64, 32, 16, 8, 4, 2, 1]
+
+        self.__dead_zone = 0.2
+        """Joystick analogs dead zone.
+        """
+
+        self.__jsax_to_rbtax = {0:0, 1:1, 2:4, 3:2, 4:5}
+        """Joystick controller map to robot axis.
+        """
+
+        self.__jsbtn_to_rbtoc = {0:6}
+        """Joystick controller map to robot axis.
+        """
+
+        self.__jsc = None
+        """Joystick controller.
+        """
+
+        self.__kb_key_state = ""
+        """Keyboard key state.
+        """
+
+        self.__block_grasping = False
+        """Block grasping action flag.
+        """
+
 #endregion
 
 #region Private Methods (Automaton)
@@ -214,10 +231,10 @@ class GUI():
     def __update_automation(self):
 
         # Stop the gripper if it is closed enough.
-        if (1 & self.__port_a_inputs):
+        if 1 & self.__port_a_inputs:
             if self.__frm_axis_controllers[5].direction == -1:
                 self.__frm_axis_controllers[5].stop()
-        
+
         # if (2 & self.__port_a_inputs):
         #     if self.__frm_axis_controllers[5].direction == -1:
         #         self.__frm_axis_controllers[5].stop()
@@ -235,24 +252,16 @@ class GUI():
         if action == Actions.NONE:
             pass
 
-        if action == Actions.UpdateSpeeds:
+        if action == Actions.UPDATE_SPEEDS:
             self.__controller.move_speed(self.__current_speed)
 
-        elif action == Actions.UpdateOutputs:
+        elif action == Actions.UPDATE_OUTPUTS:
             self.__controller.set_outputs(self.__port_a_outputs)
 
-        elif action == Actions.ClearController:
+        elif action == Actions.CLEAR_CONTROLLER:
             self.__controller.clear()
 
-        elif action == Actions.ResetController:
-            pass
-
-        elif action == Actions.DoTest1:
-            # self.__controller.move_absolute([200, 100, 200, 100, 200, 100, 0, 0, 0, 0, 0, 0])
-            pass
-
-        elif action == Actions.DoTest2:
-            # self.__controller.move_absolute([0, 100, 0, 100, 0, 100, 0, 0, 0, 0, 0, 0])
+        elif action == Actions.RESET_CONTROLLER:
             pass
 
     def __action_timer_cb(self):
@@ -274,59 +283,59 @@ class GUI():
 
 #endregion
 
-#region Private Methods (Axices CB)
+#region Private Methods (Axises CB)
 
     def __axis_0(self, speed):
 
         self.__current_speed[1] = speed * -1
 
-        self.__put_action(Actions.UpdateSpeeds)
+        self.__put_action(Actions.UPDATE_SPEEDS)
 
     def __axis_1(self, speed):
 
         self.__current_speed[3] = speed * -1
 
-        self.__put_action(Actions.UpdateSpeeds)
+        self.__put_action(Actions.UPDATE_SPEEDS)
 
     def __axis_2(self, speed):
 
         self.__current_speed[5] = speed
         self.__current_speed[11] = speed * -1
 
-        self.__put_action(Actions.UpdateSpeeds)
+        self.__put_action(Actions.UPDATE_SPEEDS)
 
     def __axis_3(self, speed):
 
         self.__current_speed[7] = speed * -1
         self.__current_speed[9] = speed
 
-        self.__put_action(Actions.UpdateSpeeds)
+        self.__put_action(Actions.UPDATE_SPEEDS)
 
     def __axis_4(self, speed):
 
         self.__current_speed[7] = speed
         self.__current_speed[9] = speed
 
-        self.__put_action(Actions.UpdateSpeeds)
+        self.__put_action(Actions.UPDATE_SPEEDS)
 
     def __axis_5(self, speed):
 
         self.__current_speed[11] = speed
 
-        self.__put_action(Actions.UpdateSpeeds)
+        self.__put_action(Actions.UPDATE_SPEEDS)
 
 #endregion
 
 #region Private Methods (Keyboard Events)
 
     def __kbc_key_release(self, event):
-        self.__kb_key_state = "UP({})".format(event.char)
+        self.__kb_key_state = f"UP({event.char})"
 
     def __kbc_key_press(self, event):
 
         char = event.char
 
-        self.__kb_key_state = "DN({})".format(char)
+        self.__kb_key_state = f"DN({char})"
 
         if char == " ":
             for key_controller in self.__frm_axis_controllers:
@@ -385,7 +394,7 @@ class GUI():
 
 #endregion
 
-#region Private Methods (Joiystick Events)
+#region Private Methods (Joystick Events)
 
     def __jsc_update_cb(self, button_data, axis_data, hat_data):
 
@@ -399,7 +408,7 @@ class GUI():
         # return
 
         # Key map to OC/DO.
-        # Go trought button map.
+        # Go thought button map.
         for button, bit in self.__jsbtn_to_rbtoc.items():
 
             # Read button state.
@@ -408,7 +417,7 @@ class GUI():
             # Check bit state.
             prev_bit_state = self.__frm_port_a_output_chk[bit].get() > 0
 
-            # Comapare the bit states.
+            # Compare the bit states.
             update_flag = prev_bit_state != act_bit_state
 
             # If it is time to update.
@@ -422,26 +431,27 @@ class GUI():
 
         self.__block_grasping = False
 
-        # Stop all axices!
-        if button_data[15] == True:
+        # Stop all axises!
+        if button_data[15]:
             for key_controller in self.__frm_axis_controllers:
                 if key_controller.is_stopped:
                     key_controller.stop()
 
         # Switch right analog function.
-        if button_data[10] == True:
+        if button_data[10]:
             self.__jsax_to_rbtax[3] = 3
         else:
             self.__jsax_to_rbtax[3] = 2
 
-        # Go trought analogs functions and axices.
+        # Go thought analogs functions and axises.
         for index in range(4):
             # Does the axis exists?
             if index in axis_data:
                 pos = axis_data[index]
                 # Does the axis is out of the dead zone?
                 if abs(pos) >= self.__dead_zone:
-                    self.__frm_axis_controllers[self.__jsax_to_rbtax[index]].speed = int(abs(scale(pos, -1.0, 1.0, -self.__max_speed, self.__max_speed)))
+                    self.__frm_axis_controllers[self.__jsax_to_rbtax[index]].speed = \
+                        int(abs(scale(pos, -1.0, 1.0, -self.__max_speed, self.__max_speed)))
                     if pos < 0:
                         self.__frm_axis_controllers[self.__jsax_to_rbtax[index]].set_ccw()
                     elif pos > 0:
@@ -450,7 +460,8 @@ class GUI():
                         self.__frm_axis_controllers[self.__jsax_to_rbtax[index]].stop()
 
                     # Block grasping when moving elbow.
-                    self.__block_grasping = ((index == 3) and (self.__frm_axis_controllers[self.__jsax_to_rbtax[index]].is_stopped == False))
+                    self.__block_grasping = \
+                        ((index == 3) and  not self.__frm_axis_controllers[self.__jsax_to_rbtax[index]].is_stopped)
 
                 else:
                     if not self.__frm_axis_controllers[self.__jsax_to_rbtax[index]].is_stopped:
@@ -458,12 +469,13 @@ class GUI():
 
         index = 4
         # Does the axis exists?
-        if (index in axis_data) and (self.__block_grasping == False):
+        if (index in axis_data) and not self.__block_grasping:
             pos = axis_data[index]
             # Does the axis is out of the dead zone?
             if abs(pos) >= self.__dead_zone:
-                self.__frm_axis_controllers[self.__jsax_to_rbtax[index]].speed = int(abs(scale(pos, -1.0, 1.0, 0, self.__max_speed)))
-                if button_data[9] == True:
+                self.__frm_axis_controllers[self.__jsax_to_rbtax[index]].speed = \
+                    int(abs(scale(pos, -1.0, 1.0, 0, self.__max_speed)))
+                if button_data[9]:
                     self.__frm_axis_controllers[self.__jsax_to_rbtax[index]].set_cw()
                 else:
                     self.__frm_axis_controllers[self.__jsax_to_rbtax[index]].set_ccw()
@@ -475,7 +487,7 @@ class GUI():
 
         try:
             if value:
-                if self.__jsc == None:
+                if self.__jsc is None:
                     self.__jsc = JoystickController()
                     self.__jsc.update_cb(self.__jsc_update_cb)
 
@@ -502,17 +514,17 @@ class GUI():
 
         answer = askyesno(title="Clear axis positions",
             message="Are you sure you want to clear the axis positions?")
-        
+
         if answer:
-            self.__put_action(Actions.ClearController)
+            self.__put_action(Actions.CLEAR_CONTROLLER)
 
     def __mnu_reset_controller(self):
 
         answer = askyesno(title="Reset robot controller",
             message="Are you sure you want to reset the robot controller?")
-        
+
         if answer:
-            self.__put_action(Actions.ResetController)
+            self.__put_action(Actions.RESET_CONTROLLER)
 
     def __mnu_enable_kbc(self):
 
@@ -526,14 +538,6 @@ class GUI():
 
         self.__jsc_enable(value)
 
-    def __mnu__do_test_1(self):
-
-        self.__put_action(Actions.DoTest1)
-
-    def __mnu__do_test_2(self):
-
-        self.__put_action(Actions.DoTest2)
-
     def __create_menu_bar(self):
 
         donothing = None
@@ -542,19 +546,19 @@ class GUI():
         menu_bar = Menu(self.__master)
 
         # First menu block.
-        filemenu = Menu(menu_bar, tearoff=0)
-        filemenu.add_command(label="New", command=donothing)
-        filemenu.add_command(label="Open", command=donothing)
-        filemenu.add_command(label="Save", command=donothing)
-        filemenu.add_separator()
-        filemenu.add_command(label="Exit", command=self.__frm_on_closing)
-        menu_bar.add_cascade(label="File", menu=filemenu)
+        file_menu = Menu(menu_bar, tearoff=0)
+        file_menu.add_command(label="New", command=donothing)
+        file_menu.add_command(label="Open", command=donothing)
+        file_menu.add_command(label="Save", command=donothing)
+        file_menu.add_separator()
+        file_menu.add_command(label="Exit", command=self.__frm_on_closing)
+        menu_bar.add_cascade(label="File", menu=file_menu)
 
         # Second menu block.
         controller_menu = Menu(menu_bar, tearoff=0)
         controller_menu.add_command(label="Clear", command=self.__mnu_clear_controller)
         controller_menu.add_command(label="Reset", command=self.__mnu_reset_controller)
-        
+
         self.__bv_enable_kbc = BooleanVar()
         self.__bv_enable_kbc.set(False)
         controller_menu.add_checkbutton(
@@ -573,10 +577,6 @@ class GUI():
             variable=self.__bv_enable_jsc,
             command=self.__mnu_enable_jsc)
 
-        # controller_menu.add_command(label="Do Test 1", command=self.__mnu__do_test_1)
-
-        # controller_menu.add_command(label="Do Test 2", command=self.__mnu__do_test_2)
-
         menu_bar.add_cascade(label="Controller", menu=controller_menu)
 
         # Third menu block.
@@ -593,15 +593,15 @@ class GUI():
 
     def __create_tabs(self):
 
-        self.notebook = Notebook(self.__master)
+        self.__notebook = Notebook(self.__master)
 
-        self.__frm_tab_man = Frame(self.notebook)
-        self.notebook.add(self.__frm_tab_man, text="Manual")
+        self.__frm_tab_man = Frame(self.__notebook)
+        self.__notebook.add(self.__frm_tab_man, text="Manual")
 
-        self.__frm_tab_auto = Frame(self.notebook)
-        self.notebook.add(self.__frm_tab_auto, text="Auto")        
+        self.__frm_tab_auto = Frame(self.__notebook)
+        self.__notebook.add(self.__frm_tab_auto, text="Auto")
 
-        self.notebook.pack(expand=1, fill ="both")
+        self.__notebook.pack(expand=1, fill ="both")
 
 #endregion
 
@@ -678,16 +678,16 @@ class GUI():
         z = d_pos[2]
         p = d_pos[3]
         r = d_pos[4]
-        message = "X: {0:4.2f} P: {3:4.2f}\nY: {1:4.2f} R: {3:4.2f}\nZ: {2:4.2f}".format(x, y, z, p, r)
+        message = f"X: {x:4.2f} P: {p:4.2f}\nY: {y:4.2f} R: {r:4.2f}\nZ: {z:4.2f}"
         self.__lbl_pos.config(text=message)
-    
+
     def __create_cartesian_pos_lbl(self):
         text_pos = "-------------------"
         self.__lbl_pos = Label(self.__frm_status_frame, text=text_pos, width=len(text_pos))
         self.__lbl_pos.place(x=500, y=0) # , width= 400, height= 300)
 
 
-    def __craete_kb_status_led(self):
+    def __create_kb_status_led(self):
 
         kb_status_frame = LabelFrame(self.__frm_status_frame, text="Keyboard")
         kb_status_frame.place(x=30, y=0)
@@ -700,7 +700,7 @@ class GUI():
         self.__lbl_kb_status = Label(kb_status_frame)
         self.__lbl_kb_status.place(x=23, y=0)
 
-    def __craete_js_status_led(self):
+    def __create_js_status_led(self):
 
         js_status_frame = LabelFrame(self.__frm_status_frame, text="Joystick")
         js_status_frame.place(x=100, y=0)
@@ -726,9 +726,9 @@ class GUI():
         self.__frm_status_frame = Frame(self.__master, bd=1, relief=SUNKEN, height=50)
         self.__frm_status_frame.pack(side=BOTTOM, fill=X)
 
-        self.__craete_kb_status_led()
+        self.__create_kb_status_led()
 
-        self.__craete_js_status_led()
+        self.__create_js_status_led()
 
         self.__create_axis_control_leds()
 
@@ -749,7 +749,7 @@ class GUI():
 
         if value != self.__port_a_outputs:
             self.__port_a_outputs = value
-            self.__put_action(Actions.UpdateOutputs)
+            self.__put_action(Actions.UPDATE_OUTPUTS)
 
     def __create_port_a_outputs(self):
 
@@ -844,7 +844,7 @@ class GUI():
     def __update_axis_controls(self):
 
         for index in range(0, 6):
-            text = "P: {}\nV: {}".format(self.__current_position[index*2], self.__current_position[index*2 + 1])
+            text = f"P: {self.__current_position[index*2]}\nV: {self.__current_position[index*2 + 1]}"
             self.__frm_axis_labels[index].config(text=text)
 
     def __create_axis_controls(self):
@@ -855,7 +855,7 @@ class GUI():
         # Create the frame.
         frame = Frame(self.__frm_tab_man)
 
-        empty_text = "P: {}\nV: {}".format(0, 0)
+        empty_text = f"P: {0}\nV: {0}"
 
         fields = {
             "cw":[
@@ -949,7 +949,7 @@ class GUI():
 
 #region Private Methods (Tab Auto)
 
-    def resizeImage(self, img, newWidth, newHeight):
+    def __resize_image(self, img, newWidth, newHeight):
 
         oldWidth = img.width()
         oldHeight = img.height()
@@ -979,7 +979,7 @@ class GUI():
         # cwf = os.path.dirname(os.path.abspath(__file__))
         # file_name = os.path.join(cwf, "resources", "images", "arrow-up.png")
         # image = PhotoImage(file=file_name)
-        # img = self.resizeImage(image, 15, 110)
+        # img = self.__resize_image(image, 15, 110)
         # btn_up = Button(self.__frm_tab_auto, text="UP", image=img, compound="left")
         btn_up = Button(self.__frm_tab_auto, text="UP")
         btn_up.place(x=320, y=20, w=50, h=30)
@@ -1010,11 +1010,9 @@ class GUI():
 
     def __frm_on_closing(self):
 
-        self.__is_runing = False
+        self.__is_running = False
 
     def __frm_create(self):
-
-        self.__init_automation()
 
         self.__master = Tk()
         self.__master.geometry("700x400")
@@ -1040,22 +1038,27 @@ class GUI():
 #region Public Methods
 
     def start(self):
-
+        """Start the app.
+        """
         self.__action_update_timer.start()
 
         self.__frm_create()
         self.__frm_update_timer.start()
 
-        self.__is_runing = True
-        while self.__is_runing:
+        self.__init_automation()
+        
+        self.__is_running = True
+        while self.__is_running:
             self.__master.update()
             self.__frm_update_timer.update()
 
         self.__master.quit()
 
     def stop(self):
+        """Start the app.
+        """
 
-        self.__is_runing = False
+        self.__is_running = False
 
         self.__action_update_timer.stop()
 

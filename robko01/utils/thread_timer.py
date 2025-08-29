@@ -49,7 +49,7 @@ __maintainer__ = "Orlin Dimitrov"
 __email__ = "robko01@8bitclub.com"
 """E-mail of the author."""
 
-__class_name__ = "TaskGUI"
+__class_name__ = "ThreadTimer"
 """Task name."""
 
 #endregion

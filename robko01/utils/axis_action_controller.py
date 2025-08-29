@@ -81,7 +81,6 @@ class AxisActionController():
         Returns:
             int: Speed
         """
-
         return self.__speed
 
     @speed.setter
@@ -104,7 +103,6 @@ class AxisActionController():
         Returns:
             bool: State
         """
-
         return self.__direction == 0
 
     @property
@@ -114,7 +112,6 @@ class AxisActionController():
         Returns:
             _type_: _description_
         """
-
         return self.__direction
 
 #endregion

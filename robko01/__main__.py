@@ -62,7 +62,7 @@ __status__ = "Debug"
 
 #endregion
 
-task_manager = None
+TASK_MANAGER = None
 
 # Create log.
 crate_log_file()
@@ -71,7 +71,7 @@ logger = get_logger(__name__)
 def interrupt_handler(signum, frame):
     """Interrupt handler."""
 
-    global task_manager, logger
+    global TASK_MANAGER, logger
 
     if signum == 2:
         logger.warning("Stopped by interrupt.")
@@ -82,14 +82,14 @@ def interrupt_handler(signum, frame):
     else:
         logger.warning("Signal handler called. Signal: {}; Frame: {}".format(signum, frame))
 
-    if task_manager is not None:
-        task_manager.stop()
+    if TASK_MANAGER is not None:
+        TASK_MANAGER.stop()
 
 def main():
     """Main function.
     """
 
-    global task_manager, logger
+    global TASK_MANAGER, logger
 
     # Add signal handler.
     signal.signal(signal.SIGINT, interrupt_handler)
@@ -115,15 +115,15 @@ def main():
     if controller is None:
         raise ValueError("Controller has been specified not properly.")
 
-    task_manager = TaskManager(controller=controller)
+    TASK_MANAGER = TaskManager(controller=controller)
 
-    names = task_manager.list_tasks()
+    names = TASK_MANAGER.list_tasks()
     for name in names:
         logger.info("Found task: %s", name)
 
-    task_manager.start(args.task)
+    TASK_MANAGER.start(args.task)
 
-    task_manager.stop()
+    TASK_MANAGER.stop()
 
 if __name__ == "__main__":
     try:

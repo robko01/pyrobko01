@@ -123,6 +123,5 @@ def int_to_bin(in_value):
     """
     value = unpack("B", in_value)
     value = int(value[0])
-    value = "{0:08b}".format(value)
-
+    value = f"{value:08b}"
     return value

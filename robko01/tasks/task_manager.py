@@ -58,20 +58,9 @@ __status__ = "Debug"
 
 #endregion
 
-class ExecutionMode(Enum):
-    """Execution mode."""
-
-    Pause = 0
-    """Pause the execution."""
-
-    Step = 1
-    """Step by step mode."""
-
-    Continue = 2
-    """Continue execution mode."""
-
 class TaskManager:
-    """This class handles the robot tasks in nice procedure way."""
+    """This class handles the robot tasks in nice procedure way.
+    """
 
 #region Attributes
 
@@ -81,33 +70,12 @@ class TaskManager:
     __controller = None
     """Robot controller."""
 
-    __execution_mode = ExecutionMode.Pause
-    """Mode of execution."""
-
     __task = None
     """The task."""
 
 #endregion
 
 #region Properties
-
-    @property
-    def execution_mode(self):
-        """Execution mode.
-
-        Returns:
-            ExecutionMode: Execution mode.
-        """
-        return self.__execution_mode
-
-    @execution_mode.setter
-    def execution_mode(self, mode):
-        """Execution mode.
-
-        Args:
-            mode (ExecutionMode): Execution mode.
-        """
-        self.__execution_mode = mode
 
 #endregion
 
@@ -154,7 +122,7 @@ class TaskManager:
         if class_module is None:
             raise ModuleNotFoundError(f"{module_path}.{module.__class_name__}")
 
-        class_isinstance = class_module(controller=self.__controller, em=self.__execution_mode)
+        class_isinstance = class_module(controller=self.__controller)
 
         return class_isinstance
 
@@ -207,7 +175,8 @@ class TaskManager:
             self.__logger.info("Ending task: {}".format(self.__task.name))
 
     def stop(self):
-        """Stop the task."""
+        """Stop the task.
+        """
 
         if self.__task is not None:
             self.__logger.info("Stopping task: {}".format(self.__task.name))

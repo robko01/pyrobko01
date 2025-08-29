@@ -22,6 +22,10 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
 """
 
+import queue
+
+from robko01.utils.thread_timer import ThreadTimer
+
 #region File Attributes
 
 __author__ = "Orlin Dimitrov"
@@ -51,11 +55,11 @@ __status__ = "Debug"
 
 #endregion
 
-import queue
-
-from robko01.utils.thread_timer import ThreadTimer
-
 class ActionController():
+    """Action controller dispatcher.
+    """
+
+#region Constructor
 
     def __init__(self):
         self.__actions_queue = queue.Queue()
@@ -72,21 +76,46 @@ class ActionController():
         """Action callback.
         """
 
+#endregion
+
+#region Private Methods
+
     def __action_timer_cb(self):
         if not self.__actions_queue.empty():
             action = self.__actions_queue.get()
             if self.__action_cb is not None:
                 self.__action_cb(action)
 
+#endregion
+
+#region Public Methods
+
     def set_action_cb(self, cb):
+        """Set action callback function.
+
+        Args:
+            cb (function): Callback function.
+        """
         if cb is not None:
             self.__action_cb = cb
 
-    def add_action(self, action):
+    def add_action(self, action: dict):
+        """Add action to the queue.
+
+        Args:
+            action (dict): Dictionary made of action and action type.
+        """
+        #ugly make it OOP.
         self.__actions_queue.put(action)
 
     def start(self):
+        """Start the action to be executed from the queue.
+        """
         self.__action_update_timer.start()
 
     def stop(self):
+        """Stop the action to be executed from the queue.
+        """
         self.__action_update_timer.stop()
+
+#endregion
