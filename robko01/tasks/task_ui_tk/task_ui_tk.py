@@ -22,9 +22,6 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
 """
 
-import time
-import threading
-
 from robko01.tasks.base_task import BaseTask
 from robko01.tasks.task_ui_tk.ui import GUI
 
