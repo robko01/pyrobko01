@@ -52,8 +52,8 @@ __status__ = "Debug"
 #endregion
 
 import queue
+
 from robko01.utils.thread_timer import ThreadTimer
-from robko01.utils.actions import Actions
 
 class ActionController():
 
@@ -62,7 +62,7 @@ class ActionController():
         """Actions queue.
         """
 
-        self.__action_update_timer = ThreadTimer()
+        self.__action_update_timer = ThreadTimer("Action controller queue update timer.")
         """Action update timer.
         """
         self.__action_update_timer.update_rate = 0.1 # Update time!
