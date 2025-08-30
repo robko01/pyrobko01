@@ -62,6 +62,8 @@ class TaskCmd(BaseTask):
 
 #endregion
 
+#region Constructor
+
     def __init__(self, **kwargs):
 
         super().__init__(kwargs)
@@ -71,6 +73,8 @@ class TaskCmd(BaseTask):
         self.__logger = get_logger(__name__)
         """Logger
         """
+
+#endregion
 
 #region Public Methods
 

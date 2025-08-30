@@ -59,25 +59,36 @@ __class_name__ = "TaskTemplate"
 #endregion
 
 class TaskTemplate(BaseTask):
-    """Task template class."""
+    """Task template class.
+    """
 
 #region Attributes
+
+#endregion
+
+#region Constructor
+
+    def __init__(self, **kwargs):
+
+        super().__init__(kwargs)
+
+        self.__logger = get_logger(__name__)
+        """Logger
+        """
 
 #endregion
 
 #region Public Methods
 
     def start(self):
-        """Start the task."""
-
-        self.__logger = get_logger(__name__)
-        """Logger
+        """Start the task.
         """
 
         self._start_cont()
 
     def stop(self):
-        """Stop the task."""
+        """Stop the task.
+        """
 
         self._stop_cont()
 

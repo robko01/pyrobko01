@@ -25,6 +25,8 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
 from robko01.tasks.base_task import BaseTask
 
+from robko01.utils.logger import get_logger
+
 from robko01.utils.utils import scale_speeds
 
 #region File Attributes
@@ -61,6 +63,18 @@ __class_name__ = "TaskGrasp3"
 
 class TaskGrasp3(BaseTask):
     """Grasp 3"""
+
+#region Constructor
+
+    def __init__(self, **kwargs):
+
+        super().__init__(kwargs)
+
+        self.__logger = get_logger(__name__)
+        """Logger
+        """
+
+#endregion
 
 #region Public Methods
 
