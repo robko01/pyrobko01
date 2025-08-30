@@ -114,15 +114,15 @@ class Communicator(BaseCommunicator):
 
 #region Protected Methods
 
-    def send(self, frame):
+    def send(self, payload):
         """Send data.
 
         Args:
-            frame (bytes): Frame
+            payload (bytes): Payload
         """
-        msg = "TX -> {}".format(self.__make_buffer(frame))
+        msg = f"TX -> {self.__make_buffer(payload)}"
         self.__logger.debug(msg)
-        self.__client.write(frame)
+        self.__client.write(payload)
 
     def receive(self):
         """Receive the frame.
@@ -143,7 +143,7 @@ class Communicator(BaseCommunicator):
             if times > self.timeout:
                 raise TimeoutError("Time out has occurred in Communicator.")
 
-        msg = "RX <- {}".format(self.__make_buffer(frame))
+        msg = f"RX <- {self.__make_buffer(frame)}"
         self.__logger.debug(msg)
         return frame
 
@@ -168,7 +168,7 @@ class Communicator(BaseCommunicator):
         """Connect to the device.
         """
         is_open = self.__client.isOpen()
-        if is_open == False:
+        if not is_open:
             self.__client.timeout = self.timeout
             # self.__client.setDTR(False)
             # self.__client.setRTS(False)

@@ -95,27 +95,22 @@ class BaseCommunicator:
     def connect(self):
         """Connect to the device.
         """
-        pass
 
     def disconnect(self):
         """Disconnect from device.
         """
-        pass
 
     def reset(self):
         """Reset target device.
         """
-        pass
 
     def send(self, payload):
         """Send
         """
-        pass
 
     def receive(self):
         """Receive
         """
-        pass
 
     def send_frame(self, req_frame):
         """Send frame.
@@ -123,6 +118,5 @@ class BaseCommunicator:
         Args:
             req_frame (bytes): Request frame.
         """
-        pass
 
 #endregion

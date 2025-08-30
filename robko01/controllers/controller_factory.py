@@ -117,8 +117,7 @@ class ControllerFactory:
         elif controller_name == "tugab":
             controller = Gabko01(GabkoPM(kwargs))
 
-
         else:
-            raise NotImplemented(f"The specified controller controller name does not have implementation: {controller_name}")
+            raise NotImplementedError(f"The specified controller name does not have implementation: {controller_name}")
 
         return controller

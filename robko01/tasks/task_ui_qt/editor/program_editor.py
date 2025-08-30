@@ -91,11 +91,22 @@ class ProgramEditor(QPlainTextEdit):
             self.update_line_number_area_width(0)
 
     def resizeEvent(self, event):
+        """Resize event.
+
+        Args:
+            event (_type_): _description_
+        """
         super().resizeEvent(event)
         cr = self.contentsRect()
-        self.line_number_area.setGeometry(QRect(cr.left(), cr.top(), self.line_number_area_width(), cr.height()))
+        self.line_number_area.setGeometry(
+            QRect(cr.left(), cr.top(), self.line_number_area_width(), cr.height()))
 
     def line_number_area_paint_event(self, event):
+        """Line number area print.
+
+        Args:
+            event (_type_): _description_
+        """
         painter = QPainter(self.line_number_area)
         painter.fillRect(event.rect(), QColor(240, 240, 240))
 
@@ -117,7 +128,8 @@ class ProgramEditor(QPlainTextEdit):
             block_number += 1
 
     def highlight_current_line(self):
-        """Highlight the line where the cursor is located."""
+        """Highlight the line where the cursor is located.
+        """
         extra_selections = []
 
         if not self.isReadOnly():

@@ -108,10 +108,10 @@ class Communicator(BaseCommunicator):
 
         for data in frame:
             if index < length - 1:
-                buffer += "{:02X}, ".format(data)
+                buffer += f"{data:02X}, "
 
             else:
-                buffer += "{:02X}".format(data)
+                buffer += f"{data:02X}"
 
             index += 1
 
@@ -121,19 +121,18 @@ class Communicator(BaseCommunicator):
 
 #region Protected Methods
 
-    def send(self, frame):
+    def send(self, payload):
         """Send data."""
 
-        msg = "TX -> {}".format(self.__make_buffer(frame))
+        msg = f"TX -> {self.__make_buffer(payload)}"
         self.__logger.debug(msg)
-        self.__client.sendall(frame)
+        self.__client.sendall(payload)
 
     def receive(self):
         """Receive the frame."""
 
         frame = self.__client.recv(1024)
-
-        msg = "RX <- {}".format(self.__make_buffer(frame))
+        msg = f"RX <- {self.__make_buffer(frame)}"
         self.__logger.debug(msg)
         return frame
 
