@@ -45,7 +45,7 @@ from robko01.joystick.joystick import JoystickController
 from PySide6.QtUiTools import QUiLoader
 from PySide6.QtWidgets import QApplication, QMessageBox, QFileDialog
 from PySide6.QtCore import QEvent, QObject, Qt, Signal, Slot, QThread, Qt
-from PySide6.QtGui import QAction, QTextCursor
+from PySide6.QtGui import QAction, QTextCursor, QIcon
 
 import serial
 
@@ -110,11 +110,11 @@ class GUI(QApplication):
         # Kinematics
         self.__kin = Kinematics()
         """Kinematics model.
-        """        
+        """
 
         self.__sc = SteppersCoefficients()
         """Steppers coefficients.
-        """        
+        """
 
         self.__window = None
         """Main window.
@@ -192,92 +192,92 @@ class GUI(QApplication):
         # Axis 1
         if 1 & self.__axis_states:
             self.__window.lcdP0.setStyleSheet("""QLCDNumber {
-                                                 background-color: yellow; 
+                                                 background-color: yellow;
                                                  color: black;}""")
             self.__window.lcdV0.setStyleSheet("""QLCDNumber {
-                                                 background-color: yellow; 
+                                                 background-color: yellow;
                                                  color: black;}""")
         else:
             self.__window.lcdP0.setStyleSheet("""QLCDNumber {
-                                                 background-color: green; 
+                                                 background-color: green;
                                                  color: yellow;}""")
             self.__window.lcdV0.setStyleSheet("""QLCDNumber {
-                                                 background-color: green; 
+                                                 background-color: green;
                                                  color: yellow;}""")
 
         if 2 & self.__axis_states:
             self.__window.lcdP1.setStyleSheet("""QLCDNumber {
-                                                 background-color: yellow; 
+                                                 background-color: yellow;
                                                  color: black;}""")
             self.__window.lcdV1.setStyleSheet("""QLCDNumber {
-                                                 background-color: yellow; 
+                                                 background-color: yellow;
                                                  color: black;}""")
         else:
             self.__window.lcdP1.setStyleSheet("""QLCDNumber {
-                                                 background-color: green; 
+                                                 background-color: green;
                                                  color: yellow;}""")
             self.__window.lcdV1.setStyleSheet("""QLCDNumber {
-                                                 background-color: green; 
+                                                 background-color: green;
                                                  color: yellow;}""")
 
         if 4 & self.__axis_states:
             self.__window.lcdP2.setStyleSheet("""QLCDNumber {
-                                                 background-color: yellow; 
+                                                 background-color: yellow;
                                                  color: black;}""")
             self.__window.lcdV2.setStyleSheet("""QLCDNumber {
-                                                 background-color: yellow; 
+                                                 background-color: yellow;
                                                  color: black;}""")
         else:
             self.__window.lcdP2.setStyleSheet("""QLCDNumber {
-                                                 background-color: green; 
+                                                 background-color: green;
                                                  color: yellow;}""")
             self.__window.lcdV2.setStyleSheet("""QLCDNumber {
-                                                 background-color: green; 
+                                                 background-color: green;
                                                  color: yellow;}""")
 
         if 8 & self.__axis_states:
             self.__window.lcdP3.setStyleSheet("""QLCDNumber {
-                                                 background-color: yellow; 
+                                                 background-color: yellow;
                                                  color: black;}""")
             self.__window.lcdV3.setStyleSheet("""QLCDNumber {
-                                                 background-color: yellow; 
+                                                 background-color: yellow;
                                                  color: black;}""")
         else:
             self.__window.lcdP3.setStyleSheet("""QLCDNumber {
-                                                 background-color: green; 
+                                                 background-color: green;
                                                  color: yellow;}""")
             self.__window.lcdV3.setStyleSheet("""QLCDNumber {
-                                                 background-color: green; 
+                                                 background-color: green;
                                                  color: yellow;}""")
 
         if 16 & self.__axis_states:
             self.__window.lcdP4.setStyleSheet("""QLCDNumber {
-                                                 background-color: yellow; 
+                                                 background-color: yellow;
                                                  color: black;}""")
             self.__window.lcdV4.setStyleSheet("""QLCDNumber {
-                                                 background-color: yellow; 
+                                                 background-color: yellow;
                                                  color: black;}""")
         else:
             self.__window.lcdP4.setStyleSheet("""QLCDNumber {
-                                                 background-color: green; 
+                                                 background-color: green;
                                                  color: yellow;}""")
             self.__window.lcdV4.setStyleSheet("""QLCDNumber {
-                                                 background-color: green; 
+                                                 background-color: green;
                                                  color: yellow;}""")
 
         if 32 & self.__axis_states:
             self.__window.lcdP5.setStyleSheet("""QLCDNumber {
-                                                 background-color: yellow; 
+                                                 background-color: yellow;
                                                  color: black;}""")
             self.__window.lcdV5.setStyleSheet("""QLCDNumber {
-                                                 background-color: yellow; 
+                                                 background-color: yellow;
                                                  color: black;}""")
         else:
             self.__window.lcdP5.setStyleSheet("""QLCDNumber {
-                                                 background-color: green; 
+                                                 background-color: green;
                                                  color: yellow;}""")
             self.__window.lcdV5.setStyleSheet("""QLCDNumber {
-                                                 background-color: green; 
+                                                 background-color: green;
                                                  color: yellow;}""")
 
     def __update_cartesian_pos(self):
@@ -341,7 +341,7 @@ class GUI(QApplication):
         self.__port_a_outputs += self.__window.cbOut7.isChecked() * 128
 
         self.__action_controller.add_action({
-                "action": Actions.UpdateOutputs,
+                "action": Actions.UPDATE_OUTPUTS,
                 "data": self.__port_a_outputs
                 })
 
@@ -393,19 +393,19 @@ class GUI(QApplication):
         if action == Actions.NONE:
             pass
 
-        if action == Actions.UpdateAbsolutePositions:
+        if action == Actions.UPDATE_ABSOLUTE_POSITIONS:
             self.__controller.move_absolute(payload["data"])
 
-        elif action == Actions.UpdateSpeeds:
+        elif action == Actions.UPDATE_SPEEDS:
             self.__controller.move_speed(self.__current_speed)
 
-        elif action == Actions.UpdateOutputs:
+        elif action == Actions.UPDATE_OUTPUTS:
             self.__controller.set_outputs(self.__port_a_outputs)
 
-        elif action == Actions.ClearController:
+        elif action == Actions.CLEAR_CONTROLLER:
             self.__controller.clear()
 
-        elif action == Actions.ResetController:
+        elif action == Actions.RESET_CONTROLLER:
             pass
 
     def __set_position(self):
@@ -442,14 +442,14 @@ class GUI(QApplication):
         # In steps is essayer because
         # ration between elbow and gripper is 1:1.
         steps[5] = steps[5] - steps[2]
-        
+
         # speeds = calc_speeds(steps, self.__max_speed)
 
         self.__target_position[0:12:2] = steps
         self.__target_position[1:12:2] = [self.__max_speed]*6 # speeds
 
         self.__action_controller.add_action({
-                "action": Actions.UpdateAbsolutePositions,
+                "action": Actions.UPDATE_ABSOLUTE_POSITIONS,
                 "data": self.__target_position
                 })
 
@@ -460,7 +460,7 @@ class GUI(QApplication):
         self.__target_position[1:12:2] = [speed]*6
 
         self.__action_controller.add_action({
-                "action": Actions.UpdateAbsolutePositions,
+                "action": Actions.UPDATE_ABSOLUTE_POSITIONS,
                 "data": self.__target_position
                 })
 
@@ -510,7 +510,7 @@ class GUI(QApplication):
 
                 # Lock the UI.
                 self.__window.pbRunProgram.setEnabled(False)
-                for a in (self.__window.pbStopProgram, 
+                for a in (self.__window.pbStopProgram,
                         self.__window.pbPauseProgram,
                         self.__window.pbContinueProgram,
                         self.__window.pbStepProgram):
@@ -598,7 +598,7 @@ class GUI(QApplication):
         self.__current_speed[1] = speed * -1
 
         self.__action_controller.add_action({
-                "action": Actions.UpdateSpeeds,
+                "action": Actions.UPDATE_SPEEDS,
                 "data": self.__current_speed
                 })
 
@@ -607,7 +607,7 @@ class GUI(QApplication):
         self.__current_speed[3] = speed * -1
 
         self.__action_controller.add_action({
-                "action": Actions.UpdateSpeeds,
+                "action": Actions.UPDATE_SPEEDS,
                 "data": self.__current_speed
                 })
 
@@ -617,7 +617,7 @@ class GUI(QApplication):
         self.__current_speed[11] = speed * -1
 
         self.__action_controller.add_action({
-                "action": Actions.UpdateSpeeds,
+                "action": Actions.UPDATE_SPEEDS,
                 "data": self.__current_speed
                 })
 
@@ -626,7 +626,7 @@ class GUI(QApplication):
         self.__current_speed[7] = speed
 
         self.__action_controller.add_action({
-                "action": Actions.UpdateSpeeds,
+                "action": Actions.UPDATE_SPEEDS,
                 "data": self.__current_speed
                 })
 
@@ -635,7 +635,7 @@ class GUI(QApplication):
         self.__current_speed[9] = speed
 
         self.__action_controller.add_action({
-                "action": Actions.UpdateSpeeds,
+                "action": Actions.UPDATE_SPEEDS,
                 "data": self.__current_speed
                 })
 
@@ -644,7 +644,7 @@ class GUI(QApplication):
         self.__current_speed[11] = speed
 
         self.__action_controller.add_action({
-                "action": Actions.UpdateSpeeds,
+                "action": Actions.UPDATE_SPEEDS,
                 "data": self.__current_speed
                 })
 
@@ -969,7 +969,7 @@ class GUI(QApplication):
 
         if answer == 16384:
             self.__action_controller.add_action({
-                    "action": Actions.ClearController,
+                    "action": Actions.CLEAR_CONTROLLER,
                     "data": None
                     })
 
@@ -984,7 +984,7 @@ class GUI(QApplication):
 
         if answer == 16384:
             self.__action_controller.add_action({
-                    "action": Actions.ResetController,
+                    "action": Actions.RESET_CONTROLLER,
                     "data": None
                     })
 
@@ -1026,14 +1026,15 @@ class GUI(QApplication):
     def __init_form(self):
 
         # Form the path to the UI file.
-        target_file = "main.ui"
+        ui_file_name = "main.ui"
         file_name = os.path.abspath(__file__)
-        file_name = os.path.dirname(file_name)
-        file_name = os.path.join(file_name, "ui", target_file)
+        local_dir = os.path.dirname(file_name)
+        ui_file_path = os.path.join(local_dir, "ui", ui_file_name)
+        icons_dir = os.path.join(local_dir, "ui", "icons")
 
         # Load UI
         loader = QUiLoader()
-        self.__window = loader.load(file_name)
+        self.__window = loader.load(ui_file_path)
 
         # Menu
         self.__window.actionExit.triggered.connect(self.__actionExit_triggered)
@@ -1123,11 +1124,17 @@ class GUI(QApplication):
         self.__window.actionLoadProgram.triggered.connect(self.__load_program)
         self.__window.actionSaveProgram.triggered.connect(self.__save_program)
         self.__window.actionSaveAsProgram.triggered.connect(lambda: print("Not Implemented"))
-        
+
         self.__window.actionRunProgram.triggered.connect(self.__run_program)
         self.__window.actionStopProgram.triggered.connect(self.__stop_program)
 
         self.__window.pbRunProgram.clicked.connect(self.__run_program)
+        icon_path_play = os.path.join(icons_dir, "play.png")
+        icon = QIcon(icon_path_play)
+        # icon = QIcon.fromTheme(QIcon.ThemeIcon.EditUndo)
+        # size = icon.actualSize
+        # print(size)
+        self.__window.pbRunProgram.setIcon(icon)
         self.__window.pbStopProgram.clicked.connect(self.__stop_program)
         self.__window.pbPauseProgram.clicked.connect(self.__pause_program)
         self.__window.pbContinueProgram.clicked.connect(self.__continue_program)
@@ -1135,7 +1142,7 @@ class GUI(QApplication):
 
         # Lock the UI.
         self.__window.pbRunProgram.setEnabled(True)
-        for a in (self.__window.pbStopProgram, 
+        for a in (self.__window.pbStopProgram,
                 self.__window.pbPauseProgram,
                 self.__window.pbContinueProgram,
                 self.__window.pbStepProgram):
