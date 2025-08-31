@@ -23,7 +23,7 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 """
 
 from robko01.tasks.base_task import BaseTask
-from robko01.tasks.task_ui_tk.ui import GUI
+from robko01.tasks.task_ui_tk.gui import GUI
 
 from robko01.utils.logger import get_logger
 
