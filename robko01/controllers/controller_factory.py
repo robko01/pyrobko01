@@ -29,7 +29,6 @@ from robko01.communicators.udp.communicator import Communicator as UDPCom
 from robko01.controllers.orlin369.robko01 import Robko01 as Orko01
 from robko01.controllers.tu_gabrovo.protocol.package_manager import PackageManager as GabkoPM
 from robko01.controllers.tu_gabrovo.robko01 import Robko01 as Gabko01
-
 from robko01.controllers.dummy.robko01 import Robko01 as Dummy
 
 #region File Attributes
