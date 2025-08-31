@@ -80,6 +80,12 @@ class Robko01(BaseRobko01):
         """Is moving callback.
         """
 
+        self.__digital_inputs = 0
+
+        self.__digital_outputs = 0
+        """Digital outputs.
+        """
+
 #endregion
 
 #region Public Methods
@@ -247,7 +253,8 @@ class Robko01(BaseRobko01):
         q4 = round(steps[3], 0)
         q5 = round(steps[4], 0)
         q6 = int(0)
-        command = f"@STEP {d},{q1},{q2},{q3},{q4+q5},{q4-q5},{q6},0\r".encode('ASCII')
+        out = self.__digital_outputs
+        command = f"@STEP {d},{q1},{q2},{q3},{q4+q5},{q4-q5},{q6},{out}\r".encode('ASCII')
         self.__communicator.send_frame(command)
         print(f"Command: {command}")
 
@@ -266,27 +273,6 @@ class Robko01(BaseRobko01):
         response = None
         result = 0
 
-        while True:
-
-            response = self.__pm.request(OpCode.IsMoving.value)
-
-            if response.is_valid():
-                if response.status == StatusCode.Ok.value:
-                    if response.opcode == OpCode.IsMoving.value:
-                        value = response.payload
-                        result = value[0]
-                        break
-                    else:
-                        raise InvalidOperationCode("Operation code: {}".format(response.opcode))
-                else:
-                    raise InvalidStatusCode("Status: {}; OpCode: {}".format(\
-                        StatusCode.to_text(response.status),\
-                        OpCode.to_text(response.opcode)))
-            else:
-                raise InvalidPackage("Invalid package.")
-
-            time.sleep(self._sync_interval)
-
         if self.__is_moving_cb is not None:
             self.__is_moving_cb(result)
 
@@ -304,26 +290,7 @@ class Robko01(BaseRobko01):
             list: Robot positions.
         """
         response = None
-        position = None
-
-        while True:
-            response = self.__pm.request(OpCode.CurrentPosition.value)
-            if response.is_valid():
-                if response.status == StatusCode.Ok.value:
-                    if response.opcode == OpCode.CurrentPosition.value:
-                        value = response.payload
-                        position = unpack("<hhhhhhhhhhhh", bytes(value))
-                        break
-                    else:
-                        raise InvalidOperationCode("Operation code: {}".format(response.opcode))
-                else:
-                    raise InvalidStatusCode("Status: {}; OpCode: {}".format(\
-                        StatusCode.to_text(response.status),\
-                        OpCode.to_text(response.opcode)))
-            else:
-                raise InvalidPackage("Invalid package.")
-
-            time.sleep(self._sync_interval)
+        position = []
 
         return position
 
@@ -338,68 +305,33 @@ class Robko01(BaseRobko01):
         Returns:
             list: Inputs of the robot.
         """
-        response = None
-        value = None
 
-        while True:
+        return self.__digital_inputs
 
-            response = self.__pm.request(OpCode.DI.value)
-
-            if response.is_valid():
-                if response.status == StatusCode.Ok.value:
-                    if response.opcode == OpCode.DI.value:
-                        value = response.payload[0]
-                        break
-                    else:
-                        raise InvalidOperationCode("Operation code: {}".format(response.opcode))
-                else:
-                    raise InvalidStatusCode("Status: {}; OpCode: {}".format(\
-                        StatusCode.to_text(response.status),\
-                        OpCode.to_text(response.opcode)))
-            else:
-                raise InvalidPackage("Invalid package.")
-
-            time.sleep(self._sync_interval)
-
-        return value
-
-    def set_outputs(self, value):
+    def set_outputs(self, value: int):
         """Set robot outputs.
 
         Args:
-            value (int): New robot position.
+            value (int): Digital outputs bit mask.
 
         Raises:
-            InvalidOperationCode: Invalid operation code.
-            InvalidStatusCode: Invalid status code.
-            InvalidPackage: Invalid package code.
+            ValueError: The value: {value} should be bigger then 0.
+            ValueError: The value: {value} should be less then 255.
 
         Returns:
-            any: Communicator response.
+            object: None
         """
         response = None
 
-        while True:
-            response = self.__pm.request(OpCode.DO.value, [value])
+        if value < 0:
+            raise ValueError(f"The value: {value} should be bigger then 0.")
 
-            if response.is_valid():
-                if response.status == StatusCode.Ok.value:
-                    if response.opcode == OpCode.DO.value:
-                        response_value = response.payload[0]
-                        arr = [int(x) for x in bin(response_value)[2:]]
-                        break
-                    else:
-                        raise InvalidOperationCode("Operation code: {}".format(response.opcode))
-                else:
-                    raise InvalidStatusCode("Status: {}; OpCode: {}".format(\
-                        StatusCode.to_text(response.status),\
-                        OpCode.to_text(response.opcode)))
-            else:
-                raise InvalidPackage("Invalid package.")
+        if value > 255:
+            raise ValueError(f"The value: {value} should be less then 255.")
 
-            time.sleep(self._sync_interval)
+        self.__digital_outputs = value
 
-        return arr
+        return response
 
     def is_moving_cb(self, callback):
         """Is moving callback.
