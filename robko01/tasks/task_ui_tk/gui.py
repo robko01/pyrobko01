@@ -22,8 +22,6 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
 """
 
-import queue
-
 from tkinter import BOTTOM, RAISED, SUNKEN, W, X, BooleanVar, Button, Checkbutton, Frame, IntVar, Label, LabelFrame, Listbox, Menu, PhotoImage, Scale, Text, Tk, messagebox
 from tkinter.messagebox import askyesno
 from tkinter.ttk import Notebook
@@ -32,6 +30,7 @@ from robko01.tasks.task_ui_tk.led import LedStatus
 from robko01.tasks.task_ui_tk.led import LedShape
 from robko01.tasks.task_ui_tk.led import LED
 
+from robko01.utils.action_controller import ActionController
 from robko01.utils.logger import get_logger
 from robko01.utils.thread_timer import ThreadTimer
 from robko01.utils.timer import Timer
@@ -87,11 +86,16 @@ class GUI():
 
     def __init__(self, **kwargs):
 
+        self.__logger = get_logger(__name__)
+
+        self.__controller = None
+        """Robot controller.
+        """
         if "controller" in kwargs:
             self.__controller = kwargs["controller"]
 
-        if self.__logger is None:
-            self.__logger = get_logger(__name__)
+        if self.__controller is None:
+            raise ReferenceError("Invalid controller instance.")
 
         self.__bv_enable_kbc = None
         self.__bv_enable_jsc = None
@@ -103,36 +107,15 @@ class GUI():
         self.__led_js_state = None
         self.__frm_status_frame = None
         self.__notebook = None
-
-        self.__actions_queue = queue.Queue()
-
-        self.__action_update_timer = ThreadTimer("Action update timer.")
-        self.__action_update_timer.update_rate = 0.01
-        self.__action_update_timer.set_cb(self.__action_timer_cb)
-
-        self.__frm_update_timer = Timer()
-        self.__frm_update_timer.update_rate = 0.05
-        self.__frm_update_timer.set_cb(self.__frm_update)
-
-        # Key controllers.
-        self.__frm_axis_controllers.append(AxisActionController(callback=self.__axis_0))
-        self.__frm_axis_controllers.append(AxisActionController(callback=self.__axis_1))
-        self.__frm_axis_controllers.append(AxisActionController(callback=self.__axis_2))
-        self.__frm_axis_controllers.append(AxisActionController(callback=self.__axis_3))
-        self.__frm_axis_controllers.append(AxisActionController(callback=self.__axis_4))
-        self.__frm_axis_controllers.append(AxisActionController(callback=self.__axis_5))
+        self.__sldr_speed = 0
 
         # Kinematics
         self.__kin = Kinematics()
         self.__sc = SteppersCoefficients()
 
         self.__max_speed = 0
-        self.__sldr_speed = 0
-        self.__is_running = False
 
-        self.__logger = None
-        """Logger module.
-        """
+        self.__is_running = False
 
         self.__master = None
         """Form master object.
@@ -162,24 +145,12 @@ class GUI():
         """Axis control LEDs.
         """
 
-        self.__frm_axis_controllers = []
-        """Axis controllers.
-        """
-
-        self.__actions_queue = None
-        """Actions queue.
-        """
-
-        self.__controller = None
-        """Robot controller.
-        """
-
         self.__current_speed = [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0]
         """Axis speeds.
         """
 
         self.__current_position = [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0]
-        """Current end-efector position.
+        """Current end-effector position.
         """
 
         self.__axis_states = 0
@@ -220,6 +191,12 @@ class GUI():
         """Block grasping action flag.
         """
 
+        self.__init_update_timer()
+
+        self.__init_axises_controllers()
+
+        self.__init_action_controller()
+
 #endregion
 
 #region Private Methods (Automaton)
@@ -232,27 +209,28 @@ class GUI():
 
         # Stop the gripper if it is closed enough.
         if 1 & self.__port_a_inputs:
-            if self.__frm_axis_controllers[5].direction == -1:
-                self.__frm_axis_controllers[5].stop()
+            if self.__axis_controllers[5].direction == -1:
+                self.__axis_controllers[5].stop()
 
         # if (2 & self.__port_a_inputs):
-        #     if self.__frm_axis_controllers[5].direction == -1:
-        #         self.__frm_axis_controllers[5].stop()
+        #     if self.__axis_controllers[5].direction == -1:
+        #         self.__axis_controllers[5].stop()
 
 #endregion
 
-#region Private Methods (Action Control)
+#region Private Methods (Action Controller)
 
-    def __put_action(self, action):
+    def __action_controller_cb(self, payload):
 
-        self.__actions_queue.put(action)
-
-    def __do_action(self, action):
+        action = payload["action"]
 
         if action == Actions.NONE:
             pass
 
-        if action == Actions.UPDATE_SPEEDS:
+        if action == Actions.UPDATE_ABSOLUTE_POSITIONS:
+            self.__controller.move_absolute(payload["data"])
+
+        elif action == Actions.UPDATE_SPEEDS:
             self.__controller.move_speed(self.__current_speed)
 
         elif action == Actions.UPDATE_OUTPUTS:
@@ -264,22 +242,99 @@ class GUI():
         elif action == Actions.RESET_CONTROLLER:
             pass
 
-    def __action_timer_cb(self):
+    def __set_position(self):
 
+        def calc_speeds(steps, speed):
+            speeds = steps
+            max_pos = max(steps)
+
+            if max_pos <= 0:
+                max_pos = 1
+
+            for index, step in enumerate(steps):
+                speeds[index] = (steps[index] * speed) / max_pos
+                speeds[index] = abs(speeds[index])
+                speeds[index] = int(speeds[index])
+            return speeds
+
+        ax0 = self.__window.sbBasePos.value()
+        ax1 = self.__window.sbShoulderPos.value()
+        ax2 = self.__window.sbElbowPos.value()
+        ax3 = self.__window.sbPPos.value()
+        ax4 = self.__window.sbRPos.value()
+        ax5 = self.__window.sbGripperPos.value()
+
+        steps = [ax0, ax1, ax2, ax3, ax4, ax5]
+
+        # Differentials inverse model.
+        q4 = steps[4] + steps[3]
+        q5 = steps[4] - steps[3]
+        steps[3] = q4
+        steps[4] = q5
+
+        # Gripper compensation.
+        # In steps is essayer because
+        # ration between elbow and gripper is 1:1.
+        steps[5] = steps[5] - steps[2]
+
+        # speeds = calc_speeds(steps, self.__max_speed)
+
+        self.__target_position[0:12:2] = steps
+        self.__target_position[1:12:2] = [self.__max_speed]*6 # speeds
+
+        self.__action_controller.add_action({
+                "action": Actions.UPDATE_ABSOLUTE_POSITIONS,
+                "data": self.__target_position
+                })
+
+    def __move_j(self, a1,a2,a3,a4,a5,a6,speed=-1):
+        if speed == -1:
+            speed = self.__max_speed
+        self.__target_position[0:12:2] = [a1,a2,a3,a4,a5,a6]
+        self.__target_position[1:12:2] = [speed]*6
+
+        self.__action_controller.add_action({
+                "action": Actions.UPDATE_ABSOLUTE_POSITIONS,
+                "data": self.__target_position
+                })
+
+        while self.__axis_states != 0:
+            pass
+
+    def __init_action_controller(self):
+        self.__action_controller = ActionController()
+        """Action controller.
+        """
+        self.__action_controller.set_action_cb(self.__action_controller_cb)
+
+#endregion
+
+#region Private Methods (Update Timer)
+
+    def __frm_update(self):
         try:
             self.__axis_states = self.__controller.is_moving()
             self.__port_a_inputs = self.__controller.get_inputs()
             self.__current_position = self.__controller.current_position()
+            self.__update_status_bar()
 
-            if not self.__actions_queue.empty():
-                action = self.__actions_queue.get()
-                self.__do_action(action)
+            self.__update_axis_controls()
+
+            if self.__jsc is not None:
+                self.__jsc.update()
+
+            self.__update_automation()
 
         except serial.serialutil.SerialException as e:
             self.__logger.info(e)
 
         except Exception as e:
             self.__logger.info(e)
+
+    def __init_update_timer(self):
+        self.__update_timer = Timer()
+        self.__update_timer.update_rate = 0.05
+        self.__update_timer.set_cb(self.__frm_update)
 
 #endregion
 
@@ -288,41 +343,65 @@ class GUI():
     def __axis_0(self, speed):
 
         self.__current_speed[1] = speed * -1
-
-        self.__put_action(Actions.UPDATE_SPEEDS)
+        self.__action_controller.add_action({
+                "action": Actions.UPDATE_SPEEDS,
+                "data": self.__current_speed
+                })
 
     def __axis_1(self, speed):
 
         self.__current_speed[3] = speed * -1
-
-        self.__put_action(Actions.UPDATE_SPEEDS)
+        self.__action_controller.add_action({
+                "action": Actions.UPDATE_SPEEDS,
+                "data": self.__current_speed
+                })
 
     def __axis_2(self, speed):
 
         self.__current_speed[5] = speed
         self.__current_speed[11] = speed * -1
-
-        self.__put_action(Actions.UPDATE_SPEEDS)
+        self.__action_controller.add_action({
+                "action": Actions.UPDATE_SPEEDS,
+                "data": self.__current_speed
+                })
 
     def __axis_3(self, speed):
 
         self.__current_speed[7] = speed * -1
         self.__current_speed[9] = speed
-
-        self.__put_action(Actions.UPDATE_SPEEDS)
+        self.__action_controller.add_action({
+                "action": Actions.UPDATE_SPEEDS,
+                "data": self.__current_speed
+                })
 
     def __axis_4(self, speed):
 
         self.__current_speed[7] = speed
         self.__current_speed[9] = speed
-
-        self.__put_action(Actions.UPDATE_SPEEDS)
+        self.__action_controller.add_action({
+                "action": Actions.UPDATE_SPEEDS,
+                "data": self.__current_speed
+                })
 
     def __axis_5(self, speed):
 
         self.__current_speed[11] = speed
+        self.__action_controller.add_action({
+                "action": Actions.UPDATE_SPEEDS,
+                "data": self.__current_speed
+                })
 
-        self.__put_action(Actions.UPDATE_SPEEDS)
+    def __init_axises_controllers(self):
+        self.__axis_controllers = []
+        """Axis controllers.
+        """
+        # Axises controllers.
+        self.__axis_controllers.append(AxisActionController(callback=self.__axis_0))
+        self.__axis_controllers.append(AxisActionController(callback=self.__axis_1))
+        self.__axis_controllers.append(AxisActionController(callback=self.__axis_2))
+        self.__axis_controllers.append(AxisActionController(callback=self.__axis_3))
+        self.__axis_controllers.append(AxisActionController(callback=self.__axis_4))
+        self.__axis_controllers.append(AxisActionController(callback=self.__axis_5))
 
 #endregion
 
@@ -338,44 +417,44 @@ class GUI():
         self.__kb_key_state = f"DN({char})"
 
         if char == " ":
-            for key_controller in self.__frm_axis_controllers:
+            for key_controller in self.__axis_controllers:
                 key_controller.stop()
 
         elif char == "1":
-            self.__frm_axis_controllers[0].set_cw()
+            self.__axis_controllers[0].set_cw()
 
         elif char == "q":
-            self.__frm_axis_controllers[0].set_ccw()
+            self.__axis_controllers[0].set_ccw()
 
         elif char == "2":
-            self.__frm_axis_controllers[1].set_cw()
+            self.__axis_controllers[1].set_cw()
 
         elif char == "w":
-            self.__frm_axis_controllers[1].set_ccw()
+            self.__axis_controllers[1].set_ccw()
 
         elif char == "3":
-            self.__frm_axis_controllers[2].set_cw()
+            self.__axis_controllers[2].set_cw()
 
         elif char == "e":
-            self.__frm_axis_controllers[2].set_ccw()
+            self.__axis_controllers[2].set_ccw()
 
         elif char == "4":
-            self.__frm_axis_controllers[3].set_cw()
+            self.__axis_controllers[3].set_cw()
 
         elif char == "r":
-            self.__frm_axis_controllers[3].set_ccw()
+            self.__axis_controllers[3].set_ccw()
 
         elif char == "5":
-            self.__frm_axis_controllers[4].set_cw()
+            self.__axis_controllers[4].set_cw()
 
         elif char == "t":
-            self.__frm_axis_controllers[4].set_ccw()
+            self.__axis_controllers[4].set_ccw()
 
         elif char == "6":
-            self.__frm_axis_controllers[5].set_cw()
+            self.__axis_controllers[5].set_cw()
 
         elif char == "y":
-            self.__frm_axis_controllers[5].set_ccw()
+            self.__axis_controllers[5].set_ccw()
 
     def __kbc_enable(self, value):
         if value:
@@ -433,7 +512,7 @@ class GUI():
 
         # Stop all axises!
         if button_data[15]:
-            for key_controller in self.__frm_axis_controllers:
+            for key_controller in self.__axis_controllers:
                 if key_controller.is_stopped:
                     key_controller.stop()
 
@@ -450,22 +529,22 @@ class GUI():
                 pos = axis_data[index]
                 # Does the axis is out of the dead zone?
                 if abs(pos) >= self.__dead_zone:
-                    self.__frm_axis_controllers[self.__jsax_to_rbtax[index]].speed = \
+                    self.__axis_controllers[self.__jsax_to_rbtax[index]].speed = \
                         int(abs(scale(pos, -1.0, 1.0, -self.__max_speed, self.__max_speed)))
                     if pos < 0:
-                        self.__frm_axis_controllers[self.__jsax_to_rbtax[index]].set_ccw()
+                        self.__axis_controllers[self.__jsax_to_rbtax[index]].set_ccw()
                     elif pos > 0:
-                        self.__frm_axis_controllers[self.__jsax_to_rbtax[index]].set_cw()
+                        self.__axis_controllers[self.__jsax_to_rbtax[index]].set_cw()
                     else:
-                        self.__frm_axis_controllers[self.__jsax_to_rbtax[index]].stop()
+                        self.__axis_controllers[self.__jsax_to_rbtax[index]].stop()
 
                     # Block grasping when moving elbow.
                     self.__block_grasping = \
-                        ((index == 3) and  not self.__frm_axis_controllers[self.__jsax_to_rbtax[index]].is_stopped)
+                        ((index == 3) and  not self.__axis_controllers[self.__jsax_to_rbtax[index]].is_stopped)
 
                 else:
-                    if not self.__frm_axis_controllers[self.__jsax_to_rbtax[index]].is_stopped:
-                        self.__frm_axis_controllers[self.__jsax_to_rbtax[index]].stop()
+                    if not self.__axis_controllers[self.__jsax_to_rbtax[index]].is_stopped:
+                        self.__axis_controllers[self.__jsax_to_rbtax[index]].stop()
 
         index = 4
         # Does the axis exists?
@@ -473,15 +552,15 @@ class GUI():
             pos = axis_data[index]
             # Does the axis is out of the dead zone?
             if abs(pos) >= self.__dead_zone:
-                self.__frm_axis_controllers[self.__jsax_to_rbtax[index]].speed = \
+                self.__axis_controllers[self.__jsax_to_rbtax[index]].speed = \
                     int(abs(scale(pos, -1.0, 1.0, 0, self.__max_speed)))
                 if button_data[9]:
-                    self.__frm_axis_controllers[self.__jsax_to_rbtax[index]].set_cw()
+                    self.__axis_controllers[self.__jsax_to_rbtax[index]].set_cw()
                 else:
-                    self.__frm_axis_controllers[self.__jsax_to_rbtax[index]].set_ccw()
+                    self.__axis_controllers[self.__jsax_to_rbtax[index]].set_ccw()
             else:
-                if not self.__frm_axis_controllers[self.__jsax_to_rbtax[index]].is_stopped:
-                    self.__frm_axis_controllers[self.__jsax_to_rbtax[index]].stop()
+                if not self.__axis_controllers[self.__jsax_to_rbtax[index]].is_stopped:
+                    self.__axis_controllers[self.__jsax_to_rbtax[index]].stop()
 
     def __jsc_enable(self, value):
 
@@ -749,7 +828,10 @@ class GUI():
 
         if value != self.__port_a_outputs:
             self.__port_a_outputs = value
-            self.__put_action(Actions.UPDATE_OUTPUTS)
+            self.__action_controller.add_action({
+                    "action": Actions.UPDATE_OUTPUTS,
+                    "data": self.__port_a_outputs
+                    })
 
     def __create_port_a_outputs(self):
 
@@ -828,7 +910,7 @@ class GUI():
             return
 
         for index in range(0, 6):
-            self.__frm_axis_controllers[index].speed = self.__max_speed
+            self.__axis_controllers[index].speed = self.__max_speed
 
     def __create_axis_speed(self):
 
@@ -861,65 +943,65 @@ class GUI():
             "cw":[
                 {
                     "text": "Base CW",
-                    "press": lambda event: self.__frm_axis_controllers[0].set_cw(),
-                    "release": lambda event: self.__frm_axis_controllers[0].stop()
+                    "press": lambda event: self.__axis_controllers[0].set_cw(),
+                    "release": lambda event: self.__axis_controllers[0].stop()
                 },
                 {
                     "text": "Shoulder UP",
-                    "press": lambda event: self.__frm_axis_controllers[1].set_cw(),
-                    "release": lambda event: self.__frm_axis_controllers[1].stop()
+                    "press": lambda event: self.__axis_controllers[1].set_cw(),
+                    "release": lambda event: self.__axis_controllers[1].stop()
                 },
                 {
                     "text": "Elbow UP",
-                    "press": lambda event: self.__frm_axis_controllers[2].set_cw(),
-                    "release": lambda event: self.__frm_axis_controllers[2].stop()
+                    "press": lambda event: self.__axis_controllers[2].set_cw(),
+                    "release": lambda event: self.__axis_controllers[2].stop()
                 },
                 {
                     "text": "P UP",
-                    "press": lambda event: self.__frm_axis_controllers[3].set_cw(),
-                    "release": lambda event: self.__frm_axis_controllers[3].stop()
+                    "press": lambda event: self.__axis_controllers[3].set_cw(),
+                    "release": lambda event: self.__axis_controllers[3].stop()
                 },
                 {
                     "text": "R CW",
-                    "press": lambda event: self.__frm_axis_controllers[4].set_cw(),
-                    "release": lambda event: self.__frm_axis_controllers[4].stop()
+                    "press": lambda event: self.__axis_controllers[4].set_cw(),
+                    "release": lambda event: self.__axis_controllers[4].stop()
                 },
                 {
                     "text": "Gripper OPEN",
-                    "press": lambda event: self.__frm_axis_controllers[5].set_cw(),
-                    "release": lambda event: self.__frm_axis_controllers[5].stop()
+                    "press": lambda event: self.__axis_controllers[5].set_cw(),
+                    "release": lambda event: self.__axis_controllers[5].stop()
                 },
             ],
             "ccw":[
                 {
                     "text": "Base CCW",
-                    "press": lambda event: self.__frm_axis_controllers[0].set_ccw(),
-                    "release": lambda event: self.__frm_axis_controllers[0].stop()
+                    "press": lambda event: self.__axis_controllers[0].set_ccw(),
+                    "release": lambda event: self.__axis_controllers[0].stop()
                 },
                 {
                     "text": "Shoulder DOWN",
-                    "press": lambda event: self.__frm_axis_controllers[1].set_ccw(),
-                    "release": lambda event: self.__frm_axis_controllers[1].stop()
+                    "press": lambda event: self.__axis_controllers[1].set_ccw(),
+                    "release": lambda event: self.__axis_controllers[1].stop()
                 },
                 {
                     "text": "Elbow DOWN",
-                    "press": lambda event: self.__frm_axis_controllers[2].set_ccw(),
-                    "release": lambda event: self.__frm_axis_controllers[2].stop()
+                    "press": lambda event: self.__axis_controllers[2].set_ccw(),
+                    "release": lambda event: self.__axis_controllers[2].stop()
                 },
                 {
                     "text": "P DOWN",
-                    "press": lambda event: self.__frm_axis_controllers[3].set_ccw(),
-                    "release": lambda event: self.__frm_axis_controllers[3].stop()
+                    "press": lambda event: self.__axis_controllers[3].set_ccw(),
+                    "release": lambda event: self.__axis_controllers[3].stop()
                 },
                 {
                     "text": "R CCW",
-                    "press": lambda event: self.__frm_axis_controllers[4].set_ccw(),
-                    "release": lambda event: self.__frm_axis_controllers[4].stop()
+                    "press": lambda event: self.__axis_controllers[4].set_ccw(),
+                    "release": lambda event: self.__axis_controllers[4].stop()
                 },
                 {
                     "text": "Gripper CLOSE",
-                    "press": lambda event: self.__frm_axis_controllers[5].set_ccw(),
-                    "release": lambda event: self.__frm_axis_controllers[5].stop()
+                    "press": lambda event: self.__axis_controllers[5].set_ccw(),
+                    "release": lambda event: self.__axis_controllers[5].stop()
                 }
             ]
         }
@@ -997,22 +1079,11 @@ class GUI():
 
 #region Private Methods (Form)
 
-    def __frm_update(self):
-
-        self.__update_status_bar()
-
-        self.__update_axis_controls()
-
-        if self.__jsc is not None:
-            self.__jsc.update()
-
-        self.__update_automation()
-
     def __frm_on_closing(self):
 
         self.__is_running = False
 
-    def __frm_create(self):
+    def __init_form(self):
 
         self.__master = Tk()
         self.__master.geometry("700x400")
@@ -1040,19 +1111,19 @@ class GUI():
     def start(self):
         """Start the app.
         """
-        self.__action_update_timer.start()
 
-        self.__frm_create()
-        self.__frm_update_timer.start()
+        self.__init_form()
 
         self.__init_automation()
-        
+
         self.__is_running = True
         while self.__is_running:
             self.__master.update()
-            self.__frm_update_timer.update()
+            self.__update_timer.update()
 
         self.__master.quit()
+
+        self.__action_controller.start()
 
     def stop(self):
         """Start the app.
@@ -1060,6 +1131,6 @@ class GUI():
 
         self.__is_running = False
 
-        self.__action_update_timer.stop()
+        self.__action_controller.stop()
 
 #endregion
