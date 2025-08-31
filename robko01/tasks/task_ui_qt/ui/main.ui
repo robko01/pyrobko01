@@ -1071,34 +1071,10 @@
             <string>Automatic</string>
            </attribute>
            <layout class="QGridLayout" name="gridLayout_5">
-            <item row="6" column="1">
-             <widget class="QPushButton" name="pbStepProgram">
-              <property name="text">
-               <string>STEP</string>
-              </property>
-             </widget>
-            </item>
-            <item row="2" column="1">
-             <widget class="QPushButton" name="pbRunProgram">
-              <property name="text">
-               <string>RUN</string>
-              </property>
-             </widget>
-            </item>
-            <item row="8" column="0">
-             <widget class="QTextEdit" name="teConsole"/>
-            </item>
             <item row="5" column="1">
              <widget class="QPushButton" name="pbContinueProgram">
               <property name="text">
                <string>CONTINUE</string>
-              </property>
-             </widget>
-            </item>
-            <item row="4" column="1">
-             <widget class="QPushButton" name="pbPauseProgram">
-              <property name="text">
-               <string>PAUSE</string>
               </property>
              </widget>
             </item>
@@ -1115,12 +1091,22 @@
               </property>
              </spacer>
             </item>
-            <item row="1" column="0" rowspan="7">
-             <widget class="QPlainTextEdit" name="pteProgramEditor">
-              <property name="placeholderText">
-               <string/>
+            <item row="4" column="1">
+             <widget class="QPushButton" name="pbPauseProgram">
+              <property name="text">
+               <string>PAUSE</string>
               </property>
              </widget>
+            </item>
+            <item row="6" column="1">
+             <widget class="QPushButton" name="pbStepProgram">
+              <property name="text">
+               <string>STEP</string>
+              </property>
+             </widget>
+            </item>
+            <item row="8" column="0">
+             <widget class="QTextEdit" name="teConsole"/>
             </item>
             <item row="3" column="1">
              <widget class="QPushButton" name="pbStopProgram">
@@ -1141,6 +1127,20 @@
                </size>
               </property>
              </spacer>
+            </item>
+            <item row="1" column="0" rowspan="7">
+             <widget class="QPlainTextEdit" name="pteProgramEditor">
+              <property name="placeholderText">
+               <string/>
+              </property>
+             </widget>
+            </item>
+            <item row="2" column="1">
+             <widget class="QPushButton" name="pbRunProgram">
+              <property name="text">
+               <string>RUN</string>
+              </property>
+             </widget>
             </item>
            </layout>
           </widget>
