@@ -53,7 +53,7 @@ __email__ = "robko01@8bitclub.com"
 """E-mail of the author."""
 
 __class_name__ = "TaskUI"
-"""Task name."""
+"""Class name."""
 
 #endregion
 
@@ -75,23 +75,32 @@ class TaskUI(BaseTask):
         """Logger
         """
 
+        self.__ui = GUI(controller=self._controller)
+        """UI class.
+        """
+
 #endregion
 
 #region Interface Methods
 
     def start(self):
-        """Start the task."""
+        """Start the task.
+        """
 
-        self._start_cont()
-
-        self.__ui = GUI(controller=self._controller)
         # self.__ui.setStyle('Fusion')
         self.__ui.start()
         self.__ui.exec()
+        self.stop()
 
     def stop(self):
+        """Stop the task.
+        """
 
-        # self.__ui.stop()
-        pass
+        if self._stop_flag:
+            return
+
+        self._stop_flag = True
+
+        self.__ui.stop()
 
 #endregion
