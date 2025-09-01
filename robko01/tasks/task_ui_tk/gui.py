@@ -30,17 +30,14 @@ from robko01.tasks.task_ui_tk.led import LedStatus
 from robko01.tasks.task_ui_tk.led import LedShape
 from robko01.tasks.task_ui_tk.led import LED
 
+from robko01.kinematics.data.steppers_coefficients import SteppersCoefficients
+from robko01.kinematics.kinematics import Kinematics
 from robko01.utils.action_controller import ActionController
 from robko01.utils.logger import get_logger
-from robko01.utils.thread_timer import ThreadTimer
 from robko01.utils.timer import Timer
 from robko01.utils.utils import scale
 from robko01.utils.axis_action_controller import AxisActionController
 from robko01.utils.actions import Actions
-
-from robko01.kinematics.data.steppers_coefficients import SteppersCoefficients
-from robko01.kinematics.kinematics import Kinematics
-
 from robko01.joystick.joystick import JoystickController
 
 import serial
@@ -85,6 +82,8 @@ class GUI():
 #region Constructor
 
     def __init__(self, **kwargs):
+        """Constructor
+        """
 
         self.__logger = get_logger(__name__)
 
@@ -97,28 +96,16 @@ class GUI():
         if self.__controller is None:
             raise ReferenceError("Invalid controller instance.")
 
-        self.__bv_enable_kbc = None
-        self.__bv_enable_jsc = None
-        self.__bid_press = None
-        self.__bid_release = None
-        self.__lbl_pos = None
-        self.__led_kb_state = None
-        self.__lbl_kb_status = None
-        self.__led_js_state = None
-        self.__frm_status_frame = None
-        self.__notebook = None
-        self.__sldr_speed = 0
-
-        # Kinematics
         self.__kin = Kinematics()
+        """Kinematics model.
+        """
+
         self.__sc = SteppersCoefficients()
+        """Steppers coefficients.
+        """
 
-        self.__max_speed = 0
-
-        self.__is_running = False
-
-        self.__master = None
-        """Form master object.
+        self.__window = None
+        """Main window.
         """
 
         self.__frm_tab_man = None
@@ -145,6 +132,19 @@ class GUI():
         """Axis control LEDs.
         """
 
+        self.__bv_enable_kbc = None
+        self.__bv_enable_jsc = None
+        self.__bid_press = None
+        self.__bid_release = None
+        self.__lbl_pos = None
+        self.__led_kb_state = None
+        self.__lbl_kb_status = None
+        self.__led_js_state = None
+        self.__frm_status_frame = None
+        self.__notebook = None
+        self.__sldr_speed = 0
+        self.__bit_weight = [128, 64, 32, 16, 8, 4, 2, 1]
+
         self.__current_speed = [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0]
         """Axis speeds.
         """
@@ -165,7 +165,13 @@ class GUI():
         """Port A outputs.
         """
 
-        self.__bit_weight = [128, 64, 32, 16, 8, 4, 2, 1]
+        self.__max_speed = 100
+        """Maximum speed.
+        """
+
+        self.__jsc = None
+        """Joystick controller.
+        """
 
         self.__dead_zone = 0.2
         """Joystick analogs dead zone.
@@ -179,18 +185,16 @@ class GUI():
         """Joystick controller map to robot axis.
         """
 
-        self.__jsc = None
-        """Joystick controller.
+        self.__block_grasping = False
+        """Block grasping action flag.
         """
 
         self.__kb_key_state = ""
         """Keyboard key state.
         """
 
-        self.__block_grasping = False
-        """Block grasping action flag.
-        """
-
+        self.__is_running = False
+        
         self.__init_update_timer()
 
         self.__init_axises_controllers()
@@ -199,22 +203,32 @@ class GUI():
 
 #endregion
 
-#region Private Methods (Automaton)
+#region Private Methods (Update Timer)
 
-    def __init_automation(self):
+    def __update_timer_cb(self):
+        try:
+            self.__axis_states = self.__controller.is_moving()
+            self.__port_a_inputs = self.__controller.get_inputs()
+            self.__current_position = self.__controller.current_position()
 
-        pass
+            self.__update_status_bar()
+            self.__update_axis_controls()
 
-    def __update_automation(self):
+            if self.__jsc is not None:
+                self.__jsc.update()
 
-        # Stop the gripper if it is closed enough.
-        if 1 & self.__port_a_inputs:
-            if self.__axis_controllers[5].direction == -1:
-                self.__axis_controllers[5].stop()
+            self.__update_automation()
 
-        # if (2 & self.__port_a_inputs):
-        #     if self.__axis_controllers[5].direction == -1:
-        #         self.__axis_controllers[5].stop()
+        except serial.serialutil.SerialException as e:
+            self.__logger.info(e)
+
+        except Exception as e:
+            self.__logger.info(e)
+
+    def __init_update_timer(self):
+        self.__update_timer = Timer()
+        self.__update_timer.update_rate = 0.05
+        self.__update_timer.set_cb(self.__update_timer_cb)
 
 #endregion
 
@@ -309,36 +323,26 @@ class GUI():
 
 #endregion
 
-#region Private Methods (Update Timer)
+#region Private Methods (Automatic Control)
 
-    def __frm_update(self):
-        try:
-            self.__axis_states = self.__controller.is_moving()
-            self.__port_a_inputs = self.__controller.get_inputs()
-            self.__current_position = self.__controller.current_position()
-            self.__update_status_bar()
+    def __init_automation(self):
 
-            self.__update_axis_controls()
+        pass
 
-            if self.__jsc is not None:
-                self.__jsc.update()
+    def __update_automation(self):
 
-            self.__update_automation()
+        # Stop the gripper if it is closed enough.
+        if 1 & self.__port_a_inputs:
+            if self.__axis_controllers[5].direction == -1:
+                self.__axis_controllers[5].stop()
 
-        except serial.serialutil.SerialException as e:
-            self.__logger.info(e)
-
-        except Exception as e:
-            self.__logger.info(e)
-
-    def __init_update_timer(self):
-        self.__update_timer = Timer()
-        self.__update_timer.update_rate = 0.05
-        self.__update_timer.set_cb(self.__frm_update)
+        # if (2 & self.__port_a_inputs):
+        #     if self.__axis_controllers[5].direction == -1:
+        #         self.__axis_controllers[5].stop()
 
 #endregion
 
-#region Private Methods (Axises CB)
+#region Private Methods (Axises Controllers)
 
     def __axis_0(self, speed):
 
@@ -402,74 +406,6 @@ class GUI():
         self.__axis_controllers.append(AxisActionController(callback=self.__axis_3))
         self.__axis_controllers.append(AxisActionController(callback=self.__axis_4))
         self.__axis_controllers.append(AxisActionController(callback=self.__axis_5))
-
-#endregion
-
-#region Private Methods (Keyboard Events)
-
-    def __kbc_key_release(self, event):
-        self.__kb_key_state = f"UP({event.char})"
-
-    def __kbc_key_press(self, event):
-
-        char = event.char
-
-        self.__kb_key_state = f"DN({char})"
-
-        if char == " ":
-            for key_controller in self.__axis_controllers:
-                key_controller.stop()
-
-        elif char == "1":
-            self.__axis_controllers[0].set_cw()
-
-        elif char == "q":
-            self.__axis_controllers[0].set_ccw()
-
-        elif char == "2":
-            self.__axis_controllers[1].set_cw()
-
-        elif char == "w":
-            self.__axis_controllers[1].set_ccw()
-
-        elif char == "3":
-            self.__axis_controllers[2].set_cw()
-
-        elif char == "e":
-            self.__axis_controllers[2].set_ccw()
-
-        elif char == "4":
-            self.__axis_controllers[3].set_cw()
-
-        elif char == "r":
-            self.__axis_controllers[3].set_ccw()
-
-        elif char == "5":
-            self.__axis_controllers[4].set_cw()
-
-        elif char == "t":
-            self.__axis_controllers[4].set_ccw()
-
-        elif char == "6":
-            self.__axis_controllers[5].set_cw()
-
-        elif char == "y":
-            self.__axis_controllers[5].set_ccw()
-
-    def __kbc_enable(self, value):
-        if value:
-            # Bind keys.
-            self.__bid_press = self.__master.bind_all("<KeyPress>", self.__kbc_key_press)
-            self.__bid_release = self.__master.bind_all("<KeyRelease>", self.__kbc_key_release)
-
-            self.__led_kb_state.turnon()
-
-        else:
-            # Unbind keys.
-            self.__master.unbind("<KeyPress>", self.__bid_press)
-            self.__master.unbind("<KeyRelease>", self.__bid_release)
-
-            self.__led_kb_state.turnoff()
 
 #endregion
 
@@ -587,84 +523,71 @@ class GUI():
 
 #endregion
 
-#region Private Methods (Menu)
+#region Private Methods (Keyboard Events)
 
-    def __mnu_clear_controller(self):
+    def __kbc_key_release(self, event):
+        self.__kb_key_state = f"UP({event.char})"
 
-        answer = askyesno(title="Clear axis positions",
-            message="Are you sure you want to clear the axis positions?")
+    def __kbc_key_press(self, event):
 
-        if answer:
-            self.__put_action(Actions.CLEAR_CONTROLLER)
+        char = event.char
 
-    def __mnu_reset_controller(self):
+        self.__kb_key_state = f"DN({char})"
 
-        answer = askyesno(title="Reset robot controller",
-            message="Are you sure you want to reset the robot controller?")
+        if char == " ":
+            for key_controller in self.__axis_controllers:
+                key_controller.stop()
 
-        if answer:
-            self.__put_action(Actions.RESET_CONTROLLER)
+        elif char == "1":
+            self.__axis_controllers[0].set_cw()
 
-    def __mnu_enable_kbc(self):
+        elif char == "q":
+            self.__axis_controllers[0].set_ccw()
 
-        value = self.__bv_enable_kbc.get()
+        elif char == "2":
+            self.__axis_controllers[1].set_cw()
 
-        self.__kbc_enable(value)
+        elif char == "w":
+            self.__axis_controllers[1].set_ccw()
 
-    def __mnu_enable_jsc(self):
+        elif char == "3":
+            self.__axis_controllers[2].set_cw()
 
-        value = self.__bv_enable_jsc.get()
+        elif char == "e":
+            self.__axis_controllers[2].set_ccw()
 
-        self.__jsc_enable(value)
+        elif char == "4":
+            self.__axis_controllers[3].set_cw()
 
-    def __create_menu_bar(self):
+        elif char == "r":
+            self.__axis_controllers[3].set_ccw()
 
-        donothing = None
+        elif char == "5":
+            self.__axis_controllers[4].set_cw()
 
-        # Menu bar.
-        menu_bar = Menu(self.__master)
+        elif char == "t":
+            self.__axis_controllers[4].set_ccw()
 
-        # First menu block.
-        file_menu = Menu(menu_bar, tearoff=0)
-        file_menu.add_command(label="New", command=donothing)
-        file_menu.add_command(label="Open", command=donothing)
-        file_menu.add_command(label="Save", command=donothing)
-        file_menu.add_separator()
-        file_menu.add_command(label="Exit", command=self.__frm_on_closing)
-        menu_bar.add_cascade(label="File", menu=file_menu)
+        elif char == "6":
+            self.__axis_controllers[5].set_cw()
 
-        # Second menu block.
-        controller_menu = Menu(menu_bar, tearoff=0)
-        controller_menu.add_command(label="Clear", command=self.__mnu_clear_controller)
-        controller_menu.add_command(label="Reset", command=self.__mnu_reset_controller)
+        elif char == "y":
+            self.__axis_controllers[5].set_ccw()
 
-        self.__bv_enable_kbc = BooleanVar()
-        self.__bv_enable_kbc.set(False)
-        controller_menu.add_checkbutton(
-            label="Enable Keyboard Control",
-            onvalue=1,
-            offvalue=0,
-            variable=self.__bv_enable_kbc,
-            command=self.__mnu_enable_kbc)
+    def __kbc_enable(self, value):
+        if value:
+            # Bind keys.
+            self.__bid_press = self.__window.bind_all("<KeyPress>", self.__kbc_key_press)
+            self.__bid_release = self.__window.bind_all("<KeyRelease>", self.__kbc_key_release)
 
-        self.__bv_enable_jsc = BooleanVar()
-        self.__bv_enable_jsc.set(False)
-        controller_menu.add_checkbutton(
-            label="Enable Joystick Control",
-            onvalue=1,
-            offvalue=0,
-            variable=self.__bv_enable_jsc,
-            command=self.__mnu_enable_jsc)
+            self.__led_kb_state.turnon()
 
-        menu_bar.add_cascade(label="Controller", menu=controller_menu)
+        else:
+            # Unbind keys.
+            self.__window.unbind("<KeyPress>", self.__bid_press)
+            self.__window.unbind("<KeyRelease>", self.__bid_release)
 
-        # Third menu block.
-        helpmenu = Menu(menu_bar, tearoff=0)
-        helpmenu.add_command(label="About", command=donothing)
-        menu_bar.add_cascade(label="Help", menu=helpmenu)
-
-        # Add the menu.
-        self.__master.config(menu=menu_bar)
+            self.__led_kb_state.turnoff()
 
 #endregion
 
@@ -672,7 +595,7 @@ class GUI():
 
     def __create_tabs(self):
 
-        self.__notebook = Notebook(self.__master)
+        self.__notebook = Notebook(self.__window)
 
         self.__frm_tab_man = Frame(self.__notebook)
         self.__notebook.add(self.__frm_tab_man, text="Manual")
@@ -802,7 +725,7 @@ class GUI():
 
     def __create_status_bar(self):
 
-        self.__frm_status_frame = Frame(self.__master, bd=1, relief=SUNKEN, height=50)
+        self.__frm_status_frame = Frame(self.__window, bd=1, relief=SUNKEN, height=50)
         self.__frm_status_frame.pack(side=BOTTOM, fill=X)
 
         self.__create_kb_status_led()
@@ -889,7 +812,9 @@ class GUI():
             var.trace_add("write", lambda name, nz, operation: self.__update_port_a_outputs())
             self.__frm_port_a_output_chk.append(var)
 
-            check = Checkbutton(lbl_frame, variable=var, offvalue=0, onvalue=self.__bit_weight[index])
+            check = Checkbutton(
+                lbl_frame, variable=var,
+                offvalue=0, onvalue=self.__bit_weight[index])
             check.grid(row=0, column=index)
 
             button = Button(lbl_frame, text="{}".format(fields[index]["text"]), padx=5, pady=2)
@@ -1077,6 +1002,93 @@ class GUI():
 
 #endregion
 
+#region Private Methods (Menu)
+
+    def __mnu_clear_controller(self):
+
+        answer = askyesno(title="Clear axis positions",
+            message="Are you sure you want to clear the axis positions?")
+
+        if answer:
+            self.__action_controller.add_action({
+                    "action": Actions.CLEAR_CONTROLLER,
+                    "data": None
+                    })
+
+    def __mnu_reset_controller(self):
+
+        answer = askyesno(title="Reset robot controller",
+            message="Are you sure you want to reset the robot controller?")
+
+        if answer:
+            self.__action_controller.add_action({
+                    "action": Actions.RESET_CONTROLLER,
+                    "data": None
+                    })
+
+    def __mnu_enable_kbc(self):
+
+        value = self.__bv_enable_kbc.get()
+
+        self.__kbc_enable(value)
+
+    def __mnu_enable_jsc(self):
+
+        value = self.__bv_enable_jsc.get()
+
+        self.__jsc_enable(value)
+
+    def __create_menu_bar(self):
+
+        donothing = None
+
+        # Menu bar.
+        menu_bar = Menu(self.__window)
+
+        # First menu block.
+        file_menu = Menu(menu_bar, tearoff=0)
+        file_menu.add_command(label="New", command=donothing)
+        file_menu.add_command(label="Open", command=donothing)
+        file_menu.add_command(label="Save", command=donothing)
+        file_menu.add_separator()
+        file_menu.add_command(label="Exit", command=self.__frm_on_closing)
+        menu_bar.add_cascade(label="File", menu=file_menu)
+
+        # Second menu block.
+        controller_menu = Menu(menu_bar, tearoff=0)
+        controller_menu.add_command(label="Clear", command=self.__mnu_clear_controller)
+        controller_menu.add_command(label="Reset", command=self.__mnu_reset_controller)
+
+        self.__bv_enable_kbc = BooleanVar()
+        self.__bv_enable_kbc.set(False)
+        controller_menu.add_checkbutton(
+            label="Enable Keyboard Control",
+            onvalue=1,
+            offvalue=0,
+            variable=self.__bv_enable_kbc,
+            command=self.__mnu_enable_kbc)
+
+        self.__bv_enable_jsc = BooleanVar()
+        self.__bv_enable_jsc.set(False)
+        controller_menu.add_checkbutton(
+            label="Enable Joystick Control",
+            onvalue=1,
+            offvalue=0,
+            variable=self.__bv_enable_jsc,
+            command=self.__mnu_enable_jsc)
+
+        menu_bar.add_cascade(label="Controller", menu=controller_menu)
+
+        # Third menu block.
+        helpmenu = Menu(menu_bar, tearoff=0)
+        helpmenu.add_command(label="About", command=donothing)
+        menu_bar.add_cascade(label="Help", menu=helpmenu)
+
+        # Add the menu.
+        self.__window.config(menu=menu_bar)
+
+#endregion
+
 #region Private Methods (Form)
 
     def __frm_on_closing(self):
@@ -1085,10 +1097,10 @@ class GUI():
 
     def __init_form(self):
 
-        self.__master = Tk()
-        self.__master.geometry("700x400")
-        self.__master.title("Robko 01")
-        self.__master.protocol("WM_DELETE_WINDOW", self.__frm_on_closing)
+        self.__window = Tk()
+        self.__window.geometry("700x400")
+        self.__window.title("Robko 01")
+        self.__window.protocol("WM_DELETE_WINDOW", self.__frm_on_closing)
 
         self.__create_menu_bar()
 
@@ -1116,20 +1128,24 @@ class GUI():
 
         self.__init_automation()
 
+        self.__action_controller.start()
+
         self.__is_running = True
         while self.__is_running:
-            self.__master.update()
+            self.__window.update()
             self.__update_timer.update()
 
-        self.__master.quit()
-
-        self.__action_controller.start()
+        self.stop()
 
     def stop(self):
         """Start the app.
         """
+        if self.__is_running:
+            self.__is_running = False
+        else:
+            return
 
-        self.__is_running = False
+        self.__window.quit()
 
         self.__action_controller.stop()
 
