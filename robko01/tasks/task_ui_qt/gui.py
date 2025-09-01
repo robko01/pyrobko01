@@ -76,7 +76,7 @@ __email__ = "robko01@8bitclub.com"
 #endregion
 
 class GUI(QApplication):
-    """GUI
+    """QT/PySide6 based UI.
     """
 
 #region Attributes
@@ -87,9 +87,6 @@ class GUI(QApplication):
 
     def __init__(self, **kwargs):
         """Constructor
-
-        Raises:
-            ReferenceError: Invalid controller instance.
         """
 
         super().__init__([])
@@ -107,7 +104,6 @@ class GUI(QApplication):
         if self.__controller is None:
             raise ReferenceError("Invalid controller instance.")
 
-        # Kinematics
         self.__kin = Kinematics()
         """Kinematics model.
         """
