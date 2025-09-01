@@ -48,27 +48,20 @@ __maintainer__ = "Orlin Dimitrov"
 __email__ = "robko01@8bitclub.com"
 """E-mail of the author."""
 
+__class_name__ = "Timer"
+"""Class name."""
+
 #endregion
 
 class Timer():
+    """Synchronous timer.
+    """
 
 #region Attributes
 
-    __t0 = 0
-
-    __t1 = 0
-
-    __delta = 0
-
-    __update_rate = 1
-
-    __enable = False
-
-    __cb = None
-
 #endregion
 
-#region Propertyes
+#region Properties
 
     @property
     def update_rate(self):
@@ -85,9 +78,8 @@ class Timer():
 
         Args:
             value (int): Update rate value.
-        """        
+        """
         self.__update_rate = value
-
 
 #endregion
 
@@ -95,7 +87,17 @@ class Timer():
 
     def __init__(self):
 
-        pass
+        self.__t0 = 0
+
+        self.__t1 = 0
+
+        self.__delta = 0
+
+        self.__update_rate = 1
+
+        self.__enable = False
+
+        self.__cb = None
 
 #endregion
 

@@ -121,14 +121,14 @@ class Communicator(BaseCommunicator):
 
 #region Protected Methods
 
-    def send(self, frame):
+    def send(self, payload):
         """Send data."""
 
-        msg = "TX -> {}".format(self.__make_buffer(frame))
+        msg = f"TX -> {self.__make_buffer(payload)}"
         self.__logger.debug(msg)
 
         if self.__client is not None:
-            self.__client.sendto(frame, (self.__host, self.__port))
+            self.__client.sendto(payload, (self.__host, self.__port))
 
     def receive(self):
         """Receive the frame."""
@@ -136,7 +136,7 @@ class Communicator(BaseCommunicator):
         response = self.__client.recvfrom(1024)
         frame = response[0]
 
-        msg = "RX <- {}".format(self.__make_buffer(frame))
+        msg = f"RX <- {self.__make_buffer(frame)}"
         self.__logger.debug(msg)
         return frame
 
@@ -164,8 +164,6 @@ class Communicator(BaseCommunicator):
     def connect(self):
         """Connect to the device.
         """
-
-        pass
 
     def disconnect(self):
         """Disconnect from device.

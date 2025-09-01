@@ -22,8 +22,6 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
 """
 
-# SUPER - Small Unified Protocol for Extendable Robots
-
 #region File Attributes
 
 __author__ = "Orlin Dimitrov"
@@ -50,37 +48,5 @@ __email__ = "robko01@8bitclub.com"
 
 __status__ = "Debug"
 """File status."""
-
-#endregion
-
-class StreamRedirector:
-    """Stream redirector.
-    """
-
-#region Constructor
-
-    def __init__(self, text_edit):
-        """Constructor
-
-        Args:
-            text_edit (QTextEdit): Text field.
-        """
-        self.text_edit = text_edit
-
-#endregion
-
-#region Public Methods
-
-    def write(self, message):
-        """Write to stream
-
-        Args:
-            message (string): Message body.
-        """
-        self.text_edit.append(message)
-
-    def flush(self):
-        """Flush
-        """
 
 #endregion

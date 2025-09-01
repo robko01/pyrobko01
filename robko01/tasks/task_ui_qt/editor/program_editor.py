@@ -22,6 +22,12 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
 """
 
+from robko01.tasks.task_ui_qt.editor.line_number_area import LineNumberArea
+
+from PySide6.QtWidgets import QPlainTextEdit, QTextEdit
+from PySide6.QtCore import QRect, Qt
+from PySide6.QtGui import QPainter, QColor, QTextFormat
+
 #region File Attributes
 
 __author__ = "Orlin Dimitrov"
@@ -51,13 +57,10 @@ __status__ = "Debug"
 
 #endregion
 
-from robko01.tasks.task_ui_qt.editor.line_number_area import LineNumberArea
+class ProgramEditor(QPlainTextEdit):
+    """program editor.
+    """
 
-from PySide6.QtWidgets import QPlainTextEdit, QTextEdit
-from PySide6.QtCore import QRect, Qt
-from PySide6.QtGui import QPainter, QColor, QTextFormat
-
-class CodeEditor(QPlainTextEdit):
     def __init__(self):
         super().__init__()
         self.line_number_area = LineNumberArea(self)
@@ -88,11 +91,22 @@ class CodeEditor(QPlainTextEdit):
             self.update_line_number_area_width(0)
 
     def resizeEvent(self, event):
+        """Resize event.
+
+        Args:
+            event (_type_): _description_
+        """
         super().resizeEvent(event)
         cr = self.contentsRect()
-        self.line_number_area.setGeometry(QRect(cr.left(), cr.top(), self.line_number_area_width(), cr.height()))
+        self.line_number_area.setGeometry(
+            QRect(cr.left(), cr.top(), self.line_number_area_width(), cr.height()))
 
     def line_number_area_paint_event(self, event):
+        """Line number area print.
+
+        Args:
+            event (_type_): _description_
+        """
         painter = QPainter(self.line_number_area)
         painter.fillRect(event.rect(), QColor(240, 240, 240))
 
@@ -114,7 +128,8 @@ class CodeEditor(QPlainTextEdit):
             block_number += 1
 
     def highlight_current_line(self):
-        """Highlight the line where the cursor is located."""
+        """Highlight the line where the cursor is located.
+        """
         extra_selections = []
 
         if not self.isReadOnly():

@@ -68,6 +68,18 @@ def scale(value, in_min, in_max, out_min, out_max):
     """
     return (value - in_min) * (out_max - out_min) / (in_max - in_min) + out_min
 
+def l_scale(target, in_limit, out_limit):
+    """Linear scaling function.
+    Args:
+        target (float): Input scalar.
+        in_limit (list): List of two elements with input minimum and maximum.
+        out_limit ([type]): List of two elements with output minimum and maximum.
+    Returns:
+        float: Output scaled value.
+    """
+
+    return scale(target, in_limit[0], in_limit[1], out_limit[0], out_limit[1])
+
 def scale_speeds(position, speed):
     """Proportional speed scales.
 
@@ -123,6 +135,5 @@ def int_to_bin(in_value):
     """
     value = unpack("B", in_value)
     value = int(value[0])
-    value = "{0:08b}".format(value)
-
+    value = f"{value:08b}"
     return value

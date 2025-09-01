@@ -1071,34 +1071,10 @@
             <string>Automatic</string>
            </attribute>
            <layout class="QGridLayout" name="gridLayout_5">
-            <item row="6" column="1">
-             <widget class="QPushButton" name="pbStepProgram">
-              <property name="text">
-               <string>STEP</string>
-              </property>
-             </widget>
-            </item>
-            <item row="2" column="1">
-             <widget class="QPushButton" name="pbRunProgram">
-              <property name="text">
-               <string>RUN</string>
-              </property>
-             </widget>
-            </item>
-            <item row="8" column="0">
-             <widget class="QTextEdit" name="teConsole"/>
-            </item>
             <item row="5" column="1">
              <widget class="QPushButton" name="pbContinueProgram">
               <property name="text">
                <string>CONTINUE</string>
-              </property>
-             </widget>
-            </item>
-            <item row="4" column="1">
-             <widget class="QPushButton" name="pbPauseProgram">
-              <property name="text">
-               <string>PAUSE</string>
               </property>
              </widget>
             </item>
@@ -1115,12 +1091,22 @@
               </property>
              </spacer>
             </item>
-            <item row="1" column="0" rowspan="7">
-             <widget class="QPlainTextEdit" name="pteProgramEditor">
-              <property name="placeholderText">
-               <string/>
+            <item row="4" column="1">
+             <widget class="QPushButton" name="pbPauseProgram">
+              <property name="text">
+               <string>PAUSE</string>
               </property>
              </widget>
+            </item>
+            <item row="6" column="1">
+             <widget class="QPushButton" name="pbStepProgram">
+              <property name="text">
+               <string>STEP</string>
+              </property>
+             </widget>
+            </item>
+            <item row="8" column="0">
+             <widget class="QTextEdit" name="teConsole"/>
             </item>
             <item row="3" column="1">
              <widget class="QPushButton" name="pbStopProgram">
@@ -1141,6 +1127,20 @@
                </size>
               </property>
              </spacer>
+            </item>
+            <item row="1" column="0" rowspan="7">
+             <widget class="QPlainTextEdit" name="pteProgramEditor">
+              <property name="placeholderText">
+               <string/>
+              </property>
+             </widget>
+            </item>
+            <item row="2" column="1">
+             <widget class="QPushButton" name="pbRunProgram">
+              <property name="text">
+               <string>RUN</string>
+              </property>
+             </widget>
             </item>
            </layout>
           </widget>
@@ -1194,8 +1194,11 @@
      <string>Run</string>
     </property>
     <addaction name="actionRunProgram"/>
-    <addaction name="separator"/>
     <addaction name="actionStopProgram"/>
+    <addaction name="separator"/>
+    <addaction name="actionPause"/>
+    <addaction name="actionContinue"/>
+    <addaction name="actionStep"/>
    </widget>
    <addaction name="menuFile"/>
    <addaction name="menuController"/>
@@ -1252,6 +1255,9 @@
    <property name="shortcut">
     <string>Ctrl+O</string>
    </property>
+   <property name="shortcutVisibleInContextMenu">
+    <bool>true</bool>
+   </property>
   </action>
   <action name="actionSaveProgram">
    <property name="text">
@@ -1259,6 +1265,9 @@
    </property>
    <property name="shortcut">
     <string>Ctrl+S</string>
+   </property>
+   <property name="shortcutVisibleInContextMenu">
+    <bool>true</bool>
    </property>
   </action>
   <action name="actionNewProgram">
@@ -1279,18 +1288,36 @@
   </action>
   <action name="actionRunProgram">
    <property name="text">
-    <string>Run (F5)</string>
+    <string>Run</string>
    </property>
    <property name="shortcut">
     <string>F5</string>
    </property>
+   <property name="shortcutVisibleInContextMenu">
+    <bool>true</bool>
+   </property>
   </action>
   <action name="actionStopProgram">
    <property name="text">
-    <string>Stop (Shift + F5)</string>
+    <string>Stop</string>
    </property>
    <property name="shortcut">
     <string>Shift+F5</string>
+   </property>
+  </action>
+  <action name="actionPause">
+   <property name="text">
+    <string>Pause</string>
+   </property>
+  </action>
+  <action name="actionContinue">
+   <property name="text">
+    <string>Continue</string>
+   </property>
+  </action>
+  <action name="actionStep">
+   <property name="text">
+    <string>Step</string>
    </property>
   </action>
  </widget>

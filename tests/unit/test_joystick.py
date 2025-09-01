@@ -22,8 +22,10 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
 """
 
-from joystick import JoystickController
 import time
+
+from joystick import JoystickController
+from robko01.utils.utils import l_scale
 
 #region File Attributes
 
@@ -53,22 +55,8 @@ __email__ = "robko01@8bitclub.com"
 
 dead_zone = 0.2
 max_speed = 150
-
-def l_scale(target, in_limit, out_limit):
-    """Linear scaling function.
-    Args:
-        target (float): Input scalar.
-        in_limit (list): List of two elements with input minimum and maximum.
-        out_limit ([type]): List of two elements with output minimum and maximum.
-    Returns:
-        float: Output scaled value.
-    """
-
-    return (target - in_limit[0]) * (out_limit[1] - out_limit[0]) / \
-        (in_limit[1] - in_limit[0]) + out_limit[0]
-
-
 speeds = {}
+
 def jsc_update_cb(button_data, axis_data, hat_data):
 
     speeds = [0, 0, 0, 0, 0, 0]

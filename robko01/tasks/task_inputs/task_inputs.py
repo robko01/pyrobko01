@@ -54,7 +54,7 @@ __status__ = "Debug"
 """File status."""
 
 __class_name__ = "TaskInputs"
-"""Task name."""
+"""Class name."""
 
 #endregion
 
@@ -65,14 +65,22 @@ class TaskInputs(BaseTask):
 
 #endregion
 
-#region Public Methods
+#region Constructor
 
-    def start(self):
-        """Start the task."""
+    def __init__(self, **kwargs):
+
+        super().__init__(kwargs)
 
         self.__logger = get_logger(__name__)
         """Logger
         """
+
+#endregion
+
+#region Public Methods
+
+    def start(self):
+        """Start the task."""
 
         self._start_cont()
 
@@ -80,6 +88,6 @@ class TaskInputs(BaseTask):
         inputs = self._controller.get_inputs()[1]
 
         # Show it.
-        self.__logger.info("Digital Inputs: {}".format(inputs))
+        self.__logger.info(f"Digital Inputs: {inputs}")
 
 #endregion

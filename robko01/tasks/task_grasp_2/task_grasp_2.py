@@ -56,24 +56,26 @@ __status__ = "Debug"
 """File status."""
 
 __class_name__ = "TaskGrasp2"
-"""Task name."""
+"""Class name."""
 
 #endregion
 
 class TaskGrasp2(BaseTask):
     """Grasp 2"""
 
-    
+#region Constructor
 
     def __init__(self, **kwargs):
 
         super().__init__(kwargs)
 
         self._name = __class_name__
-    
+
         self.__logger = get_logger(__name__)
         """Logger
         """
+
+#endregion
 
 #region Private Methods
 

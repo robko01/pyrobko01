@@ -22,6 +22,14 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
 """
 
+import sys
+import threading
+import linecache
+import traceback
+
+from PySide6.QtCore import Signal
+from PySide6.QtCore import QThread
+
 #region File Attributes
 
 __author__ = "Orlin Dimitrov"
@@ -51,13 +59,9 @@ __status__ = "Debug"
 
 #endregion
 
-import sys, threading, linecache, traceback
-
-from PySide6.QtCore import Signal, QThread
-
-class Worker(QThread):
+class ProgramRunner(QThread):
     """
-    Worker thread that executes a Python script with step-by-step debugging support.
+    ProgramRunner is thread that executes a Python script with step-by-step debugging support.
 
     This class uses Python's `sys.settrace` mechanism to intercept line execution events,
     enabling step, pause, continue, and stop controls for script execution. It runs the
@@ -88,7 +92,11 @@ class Worker(QThread):
     output = Signal(str)
     dbg_line = Signal(int, str)  # (lineno, source text)
 
+#region Constructor
+
     def __init__(self):
+        """Constructor
+        """
         super().__init__()
         self.script_path = ""
         # stepping control
@@ -96,28 +104,33 @@ class Worker(QThread):
         self._gate.set()                   # start in "running"
         self._stepping = False
         self._stop_requested = False
-        self.__g = dict()
+        self.__g = {
+            "__name__": "__main__",
+            "__file__": self.script_path,
+            "output": lambda msg: self.output.emit(str(msg)),
+        }
+        """globals for executed script: provide an 'output' helper if desired
+        """
 
-    # ---- public controls called from UI ----
-    def pause(self):
-        self._stepping = False
-        self._gate.clear()
+#endregion
 
-    def continue_(self):
-        self._stepping = False
-        self._gate.set()
+#region Protected Methods
 
-    def step_once(self):
-        # allow exactly one line to execute; then pause again
-        self._stepping = True
-        self._gate.set()
+    def _trace(self, frame, event: str, arg):
+        """Tracing
 
-    def stop(self):
-        self._stop_requested = True
-        self._gate.set()  # in case we're paused, let trace raise SystemExit
+        Args:
+            frame (_type_): _description_
+            event (str): Event type
+            arg (_type_): _description_
 
-    # ---- tracing ----
-    def _trace(self, frame, event, arg):
+        Raises:
+            SystemExit: _description_
+            SystemExit: _description_
+
+        Returns:
+            _type_: _description_
+        """
         if event == "line" and frame.f_code.co_filename == self.script_path:
             lineno = frame.f_lineno
             src = linecache.getline(self.script_path, lineno).rstrip("\n")
@@ -136,11 +149,43 @@ class Worker(QThread):
                 self._gate.clear()
         return self._trace  # keep tracing subsequent events
 
+#endregion
+
+#region Public Methods
+
     def add_api(self, fx: dict):
+        """Update dependencies of the code runner/ e.g. API.
+        """
         self.__g.update(fx)
 
-    # ---- main runner ----
+    def pause(self):
+        """Pause the code execution.
+        """
+        self._stepping = False
+        self._gate.clear()
+
+    def continue_(self):
+        """Continue code running.
+        """
+        self._stepping = False
+        self._gate.set()
+
+    def step_once(self):
+        """Step over.
+        """
+        # allow exactly one line to execute; then pause again
+        self._stepping = True
+        self._gate.set()
+
+    def stop(self):
+        """Stop the execution.
+        """
+        self._stop_requested = True
+        self._gate.set()  # in case we're paused, let trace raise SystemExit
+
     def run(self):
+        """Run the code.
+        """
         if not self.script_path:
             self.output.emit("No script loaded.\n")
             return
@@ -158,13 +203,6 @@ class Worker(QThread):
             # install tracer for THIS thread
             sys.settrace(self._trace)
 
-            # globals for executed script: provide an 'output' helper if desired
-            self.add_api({
-                "__name__": "__main__",
-                "__file__": self.script_path,
-                "output": lambda msg: self.output.emit(str(msg)),
-            })
-
             # Execute
             exec(code, self.__g, self.__g)
 
@@ -175,4 +213,5 @@ class Worker(QThread):
         finally:
             sys.settrace(None)
             self.finished.emit()
-    
+
+#endregion

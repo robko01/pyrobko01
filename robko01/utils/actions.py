@@ -49,7 +49,7 @@ __email__ = "robko01@8bitclub.com"
 """E-mail of the author."""
 
 __class_name__ = "TaskGUI"
-"""Task name."""
+"""Class name."""
 
 #endregion
 
@@ -59,13 +59,13 @@ class Actions(Enum):
 
     NONE = 0
 
-    SaveCurrentPosition = 15
-    RunStoredPositions = 17
+    SAVE_CURRENT_POSITION = 15
+    RUN_STORED_POSITIONS = 17
 
-    UpdateAbsolutePositions = 20
-    UpdateRealtivePositions = 21
-    UpdateSpeeds = 22
-    UpdateOutputs = 23
+    UPDATE_ABSOLUTE_POSITIONS = 20
+    UPDATE_RELATIVE_POSITIONS = 21
+    UPDATE_SPEEDS = 22
+    UPDATE_OUTPUTS = 23
 
-    ClearController = 30
-    ResetController = 31
+    CLEAR_CONTROLLER = 30
+    RESET_CONTROLLER = 31

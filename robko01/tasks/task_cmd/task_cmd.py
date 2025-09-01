@@ -51,7 +51,7 @@ __email__ = "robko01@8bitclub.com"
 """E-mail of the author."""
 
 __class_name__ = "TaskCmd"
-"""Task name."""
+"""Class name."""
 
 #endregion
 
@@ -62,6 +62,8 @@ class TaskCmd(BaseTask):
 
 #endregion
 
+#region Constructor
+
     def __init__(self, **kwargs):
 
         super().__init__(kwargs)
@@ -71,6 +73,8 @@ class TaskCmd(BaseTask):
         self.__logger = get_logger(__name__)
         """Logger
         """
+
+#endregion
 
 #region Public Methods
 

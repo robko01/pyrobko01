@@ -27,9 +27,9 @@ import sys
 import os
 import traceback
 
-from robko01.tasks.task_ui_qt.editor.code_editor import CodeEditor
+from robko01.tasks.task_ui_qt.editor.program_editor import ProgramEditor
 from robko01.tasks.task_ui_qt.utils.stream_redirector import StreamRedirector
-from robko01.tasks.task_ui_qt.utils.worker import Worker
+from robko01.tasks.task_ui_qt.utils.program_runner import ProgramRunner
 
 from robko01.kinematics.data.steppers_coefficients import SteppersCoefficients
 from robko01.kinematics.kinematics import Kinematics
@@ -45,7 +45,7 @@ from robko01.joystick.joystick import JoystickController
 from PySide6.QtUiTools import QUiLoader
 from PySide6.QtWidgets import QApplication, QMessageBox, QFileDialog
 from PySide6.QtCore import QEvent, QObject, Qt, Signal, Slot, QThread, Qt
-from PySide6.QtGui import QAction, QTextCursor
+from PySide6.QtGui import QAction, QTextCursor, QIcon
 
 import serial
 
@@ -76,7 +76,7 @@ __email__ = "robko01@8bitclub.com"
 #endregion
 
 class GUI(QApplication):
-    """GUI
+    """QT/PySide6 based UI.
     """
 
 #region Attributes
@@ -87,9 +87,6 @@ class GUI(QApplication):
 
     def __init__(self, **kwargs):
         """Constructor
-
-        Raises:
-            ReferenceError: Invalid controller instance.
         """
 
         super().__init__([])
@@ -107,14 +104,13 @@ class GUI(QApplication):
         if self.__controller is None:
             raise ReferenceError("Invalid controller instance.")
 
-        # Kinematics
         self.__kin = Kinematics()
         """Kinematics model.
-        """        
+        """
 
         self.__sc = SteppersCoefficients()
         """Steppers coefficients.
-        """        
+        """
 
         self.__window = None
         """Main window.
@@ -192,92 +188,92 @@ class GUI(QApplication):
         # Axis 1
         if 1 & self.__axis_states:
             self.__window.lcdP0.setStyleSheet("""QLCDNumber {
-                                                 background-color: yellow; 
+                                                 background-color: yellow;
                                                  color: black;}""")
             self.__window.lcdV0.setStyleSheet("""QLCDNumber {
-                                                 background-color: yellow; 
+                                                 background-color: yellow;
                                                  color: black;}""")
         else:
             self.__window.lcdP0.setStyleSheet("""QLCDNumber {
-                                                 background-color: green; 
+                                                 background-color: green;
                                                  color: yellow;}""")
             self.__window.lcdV0.setStyleSheet("""QLCDNumber {
-                                                 background-color: green; 
+                                                 background-color: green;
                                                  color: yellow;}""")
 
         if 2 & self.__axis_states:
             self.__window.lcdP1.setStyleSheet("""QLCDNumber {
-                                                 background-color: yellow; 
+                                                 background-color: yellow;
                                                  color: black;}""")
             self.__window.lcdV1.setStyleSheet("""QLCDNumber {
-                                                 background-color: yellow; 
+                                                 background-color: yellow;
                                                  color: black;}""")
         else:
             self.__window.lcdP1.setStyleSheet("""QLCDNumber {
-                                                 background-color: green; 
+                                                 background-color: green;
                                                  color: yellow;}""")
             self.__window.lcdV1.setStyleSheet("""QLCDNumber {
-                                                 background-color: green; 
+                                                 background-color: green;
                                                  color: yellow;}""")
 
         if 4 & self.__axis_states:
             self.__window.lcdP2.setStyleSheet("""QLCDNumber {
-                                                 background-color: yellow; 
+                                                 background-color: yellow;
                                                  color: black;}""")
             self.__window.lcdV2.setStyleSheet("""QLCDNumber {
-                                                 background-color: yellow; 
+                                                 background-color: yellow;
                                                  color: black;}""")
         else:
             self.__window.lcdP2.setStyleSheet("""QLCDNumber {
-                                                 background-color: green; 
+                                                 background-color: green;
                                                  color: yellow;}""")
             self.__window.lcdV2.setStyleSheet("""QLCDNumber {
-                                                 background-color: green; 
+                                                 background-color: green;
                                                  color: yellow;}""")
 
         if 8 & self.__axis_states:
             self.__window.lcdP3.setStyleSheet("""QLCDNumber {
-                                                 background-color: yellow; 
+                                                 background-color: yellow;
                                                  color: black;}""")
             self.__window.lcdV3.setStyleSheet("""QLCDNumber {
-                                                 background-color: yellow; 
+                                                 background-color: yellow;
                                                  color: black;}""")
         else:
             self.__window.lcdP3.setStyleSheet("""QLCDNumber {
-                                                 background-color: green; 
+                                                 background-color: green;
                                                  color: yellow;}""")
             self.__window.lcdV3.setStyleSheet("""QLCDNumber {
-                                                 background-color: green; 
+                                                 background-color: green;
                                                  color: yellow;}""")
 
         if 16 & self.__axis_states:
             self.__window.lcdP4.setStyleSheet("""QLCDNumber {
-                                                 background-color: yellow; 
+                                                 background-color: yellow;
                                                  color: black;}""")
             self.__window.lcdV4.setStyleSheet("""QLCDNumber {
-                                                 background-color: yellow; 
+                                                 background-color: yellow;
                                                  color: black;}""")
         else:
             self.__window.lcdP4.setStyleSheet("""QLCDNumber {
-                                                 background-color: green; 
+                                                 background-color: green;
                                                  color: yellow;}""")
             self.__window.lcdV4.setStyleSheet("""QLCDNumber {
-                                                 background-color: green; 
+                                                 background-color: green;
                                                  color: yellow;}""")
 
         if 32 & self.__axis_states:
             self.__window.lcdP5.setStyleSheet("""QLCDNumber {
-                                                 background-color: yellow; 
+                                                 background-color: yellow;
                                                  color: black;}""")
             self.__window.lcdV5.setStyleSheet("""QLCDNumber {
-                                                 background-color: yellow; 
+                                                 background-color: yellow;
                                                  color: black;}""")
         else:
             self.__window.lcdP5.setStyleSheet("""QLCDNumber {
-                                                 background-color: green; 
+                                                 background-color: green;
                                                  color: yellow;}""")
             self.__window.lcdV5.setStyleSheet("""QLCDNumber {
-                                                 background-color: green; 
+                                                 background-color: green;
                                                  color: yellow;}""")
 
     def __update_cartesian_pos(self):
@@ -341,7 +337,7 @@ class GUI(QApplication):
         self.__port_a_outputs += self.__window.cbOut7.isChecked() * 128
 
         self.__action_controller.add_action({
-                "action": Actions.UpdateOutputs,
+                "action": Actions.UPDATE_OUTPUTS,
                 "data": self.__port_a_outputs
                 })
 
@@ -376,7 +372,7 @@ class GUI(QApplication):
             self.__logger.error(traceback.format_exc())
 
     def __init_update_timer(self):
-        self.__update_timer = ThreadTimer()
+        self.__update_timer = ThreadTimer("UI update timer.")
         """Update timer.
         """
         self.__update_timer.update_rate = 0.1 # Update time!
@@ -393,19 +389,19 @@ class GUI(QApplication):
         if action == Actions.NONE:
             pass
 
-        if action == Actions.UpdateAbsolutePositions:
+        if action == Actions.UPDATE_ABSOLUTE_POSITIONS:
             self.__controller.move_absolute(payload["data"])
 
-        elif action == Actions.UpdateSpeeds:
+        elif action == Actions.UPDATE_SPEEDS:
             self.__controller.move_speed(self.__current_speed)
 
-        elif action == Actions.UpdateOutputs:
+        elif action == Actions.UPDATE_OUTPUTS:
             self.__controller.set_outputs(self.__port_a_outputs)
 
-        elif action == Actions.ClearController:
+        elif action == Actions.CLEAR_CONTROLLER:
             self.__controller.clear()
 
-        elif action == Actions.ResetController:
+        elif action == Actions.RESET_CONTROLLER:
             pass
 
     def __set_position(self):
@@ -442,14 +438,14 @@ class GUI(QApplication):
         # In steps is essayer because
         # ration between elbow and gripper is 1:1.
         steps[5] = steps[5] - steps[2]
-        
+
         # speeds = calc_speeds(steps, self.__max_speed)
 
         self.__target_position[0:12:2] = steps
         self.__target_position[1:12:2] = [self.__max_speed]*6 # speeds
 
         self.__action_controller.add_action({
-                "action": Actions.UpdateAbsolutePositions,
+                "action": Actions.UPDATE_ABSOLUTE_POSITIONS,
                 "data": self.__target_position
                 })
 
@@ -460,7 +456,7 @@ class GUI(QApplication):
         self.__target_position[1:12:2] = [speed]*6
 
         self.__action_controller.add_action({
-                "action": Actions.UpdateAbsolutePositions,
+                "action": Actions.UPDATE_ABSOLUTE_POSITIONS,
                 "data": self.__target_position
                 })
 
@@ -482,7 +478,7 @@ class GUI(QApplication):
         path, _ = QFileDialog.getOpenFileName(self.__window, "Load Python Script", "", "Python Files (*.py)")
         if not path:
             return
-        self.__worker.script_path = path
+        self.__program_runner.script_path = path
         with open(path, "r", encoding="utf-8") as f:
             self.__window.pteProgramEditor.setPlainText(f.read())
         self.__window.teConsole.append(f"Loaded script: {path}\n")
@@ -495,22 +491,22 @@ class GUI(QApplication):
 
     @Slot()
     def __run_program(self):
-        if self.__worker is not None:
-            if not self.__worker.isRunning():
+        if self.__program_runner is not None:
+            if not self.__program_runner.isRunning():
 
                 # ensure the latest edits are saved before execution
                 if self.__window.actionSaveProgram.isEnabled():
                     self.__save_program()
 
                 # reset controls
-                self.__worker.continue_()
-                self.__worker._stepping = False
-                self.__worker._stop_requested = False
-                self.__worker.start()
+                self.__program_runner.continue_()
+                self.__program_runner._stepping = False
+                self.__program_runner._stop_requested = False
+                self.__program_runner.start()
 
                 # Lock the UI.
                 self.__window.pbRunProgram.setEnabled(False)
-                for a in (self.__window.pbStopProgram, 
+                for a in (self.__window.pbStopProgram,
                         self.__window.pbPauseProgram,
                         self.__window.pbContinueProgram,
                         self.__window.pbStepProgram):
@@ -518,13 +514,13 @@ class GUI(QApplication):
 
     @Slot()
     def __stop_program(self):
-        if self.__worker is not None:
-            self.__worker.stop()
+        if self.__program_runner is not None:
+            self.__program_runner.stop()
 
     @Slot()
     def __pause_program(self):
-        if self.__worker is not None:
-            self.__worker.pause()
+        if self.__program_runner is not None:
+            self.__program_runner.pause()
             # Lock UI.
             self.__window.pbPauseProgram.setEnabled(False)
             self.__window.pbContinueProgram.setEnabled(True)
@@ -532,16 +528,16 @@ class GUI(QApplication):
 
     @Slot()
     def __continue_program(self):
-        if self.__worker is not None:
-            self.__worker.continue_()
+        if self.__program_runner is not None:
+            self.__program_runner.continue_()
             # Lock UI.
             self.__window.pbPauseProgram.setEnabled(True)
             self.__window.pbContinueProgram.setEnabled(False)
 
     @Slot()
     def __step_program(self):
-        if self.__worker is not None:
-            self.__worker.step_once()
+        if self.__program_runner is not None:
+            self.__program_runner.step_once()
             # Lock UI.
             self.__window.pbPauseProgram.setEnabled(False)
             self.__window.pbContinueProgram.setEnabled(True)
@@ -580,15 +576,14 @@ class GUI(QApplication):
 
     def __init_automatic(self):
 
-        # self.__window.pteProgramEditor = CodeEditor()
-        self.__worker = Worker()
+        self.__program_runner = ProgramRunner()
         """Script executor.
         """
-        self.__worker.output.connect(self.__window.teConsole.append)
-        self.__worker.started.connect(self.__on_script_started)
-        self.__worker.finished.connect(self.__on_script_finished)
-        self.__worker.dbg_line.connect(self.__on_dbg_line)
-        self.__worker.add_api({"move_j": self.__move_j})
+        self.__program_runner.output.connect(self.__window.teConsole.append)
+        self.__program_runner.started.connect(self.__on_script_started)
+        self.__program_runner.finished.connect(self.__on_script_finished)
+        self.__program_runner.dbg_line.connect(self.__on_dbg_line)
+        self.__program_runner.add_api({"move_j": self.__move_j})
 
 #endregion
 
@@ -599,7 +594,7 @@ class GUI(QApplication):
         self.__current_speed[1] = speed * -1
 
         self.__action_controller.add_action({
-                "action": Actions.UpdateSpeeds,
+                "action": Actions.UPDATE_SPEEDS,
                 "data": self.__current_speed
                 })
 
@@ -608,7 +603,7 @@ class GUI(QApplication):
         self.__current_speed[3] = speed * -1
 
         self.__action_controller.add_action({
-                "action": Actions.UpdateSpeeds,
+                "action": Actions.UPDATE_SPEEDS,
                 "data": self.__current_speed
                 })
 
@@ -618,7 +613,7 @@ class GUI(QApplication):
         self.__current_speed[11] = speed * -1
 
         self.__action_controller.add_action({
-                "action": Actions.UpdateSpeeds,
+                "action": Actions.UPDATE_SPEEDS,
                 "data": self.__current_speed
                 })
 
@@ -627,7 +622,7 @@ class GUI(QApplication):
         self.__current_speed[7] = speed
 
         self.__action_controller.add_action({
-                "action": Actions.UpdateSpeeds,
+                "action": Actions.UPDATE_SPEEDS,
                 "data": self.__current_speed
                 })
 
@@ -636,7 +631,7 @@ class GUI(QApplication):
         self.__current_speed[9] = speed
 
         self.__action_controller.add_action({
-                "action": Actions.UpdateSpeeds,
+                "action": Actions.UPDATE_SPEEDS,
                 "data": self.__current_speed
                 })
 
@@ -645,7 +640,7 @@ class GUI(QApplication):
         self.__current_speed[11] = speed
 
         self.__action_controller.add_action({
-                "action": Actions.UpdateSpeeds,
+                "action": Actions.UPDATE_SPEEDS,
                 "data": self.__current_speed
                 })
 
@@ -950,8 +945,14 @@ class GUI(QApplication):
 #region Private Methods (Menu)
 
     def __actionExit_triggered(self):
-        print("HOI")
-        pass
+        msg_box = QMessageBox()
+        msg_box.setWindowTitle("Exit?")
+        msg_box.setText("Are you sure you want to exit the application.")
+        msg_box.setStandardButtons(QMessageBox.Yes | QMessageBox.No)
+        msg_box.setDefaultButton(QMessageBox.No)
+        answer = msg_box.exec()
+        if answer == QMessageBox.Yes:
+            sys.exit()
 
     def __actionClear_triggered(self):
 
@@ -964,7 +965,7 @@ class GUI(QApplication):
 
         if answer == 16384:
             self.__action_controller.add_action({
-                    "action": Actions.ClearController,
+                    "action": Actions.CLEAR_CONTROLLER,
                     "data": None
                     })
 
@@ -979,7 +980,7 @@ class GUI(QApplication):
 
         if answer == 16384:
             self.__action_controller.add_action({
-                    "action": Actions.ResetController,
+                    "action": Actions.RESET_CONTROLLER,
                     "data": None
                     })
 
@@ -1021,14 +1022,15 @@ class GUI(QApplication):
     def __init_form(self):
 
         # Form the path to the UI file.
-        target_file = "main.ui"
+        ui_file_name = "main.ui"
         file_name = os.path.abspath(__file__)
-        file_name = os.path.dirname(file_name)
-        file_name = os.path.join(file_name, "ui", target_file)
+        local_dir = os.path.dirname(file_name)
+        ui_file_path = os.path.join(local_dir, "ui", ui_file_name)
+        icons_dir = os.path.join(local_dir, "ui", "icons")
 
         # Load UI
         loader = QUiLoader()
-        self.__window = loader.load(file_name)
+        self.__window = loader.load(ui_file_path)
 
         # Menu
         self.__window.actionExit.triggered.connect(self.__actionExit_triggered)
@@ -1111,17 +1113,24 @@ class GUI(QApplication):
         self.__window.sldSpeed.valueChanged.connect(self.__sldSpeed_valueChanged)
 
         # Automatic
+        # self.__window.pteProgramEditor = ProgramEditor()
         self.__window.teConsole.setReadOnly(True)
 
         self.__window.actionNewProgram.triggered.connect(lambda: print("Not Implemented"))
         self.__window.actionLoadProgram.triggered.connect(self.__load_program)
         self.__window.actionSaveProgram.triggered.connect(self.__save_program)
         self.__window.actionSaveAsProgram.triggered.connect(lambda: print("Not Implemented"))
-        
+
         self.__window.actionRunProgram.triggered.connect(self.__run_program)
         self.__window.actionStopProgram.triggered.connect(self.__stop_program)
 
         self.__window.pbRunProgram.clicked.connect(self.__run_program)
+        icon_path_play = os.path.join(icons_dir, "play.png")
+        icon = QIcon(icon_path_play)
+        # icon = QIcon.fromTheme(QIcon.ThemeIcon.EditUndo)
+        # size = icon.actualSize
+        # print(size)
+        self.__window.pbRunProgram.setIcon(icon)
         self.__window.pbStopProgram.clicked.connect(self.__stop_program)
         self.__window.pbPauseProgram.clicked.connect(self.__pause_program)
         self.__window.pbContinueProgram.clicked.connect(self.__continue_program)
@@ -1129,7 +1138,7 @@ class GUI(QApplication):
 
         # Lock the UI.
         self.__window.pbRunProgram.setEnabled(True)
-        for a in (self.__window.pbStopProgram, 
+        for a in (self.__window.pbStopProgram,
                 self.__window.pbPauseProgram,
                 self.__window.pbContinueProgram,
                 self.__window.pbStepProgram):

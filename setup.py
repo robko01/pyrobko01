@@ -22,11 +22,7 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
 """
 
-import sys
-
 from setuptools import find_packages, setup
-
-import robko01
 
 #region File Attributes
 
@@ -58,6 +54,11 @@ __status__ = "Debug"
 #endregion
 
 def long_description():
+    """Long description generator.
+
+    Returns:
+        str: Long description
+    """
     with open('README.md', encoding='utf-8') as f:
         return f.read()
 

@@ -25,6 +25,8 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
 from robko01.tasks.base_task import BaseTask
 
+from robko01.utils.logger import get_logger
+
 #region File Attributes
 
 __author__ = "Orlin Dimitrov"
@@ -53,13 +55,27 @@ __status__ = "Debug"
 """File status."""
 
 __class_name__ = "TaskGrasp1"
-"""Task name."""
+"""Class name."""
 
 #endregion
 
 class TaskGrasp1(BaseTask):
     """Task Grasp 1
     """
+
+#region Constructor
+
+    def __init__(self, **kwargs):
+
+        super().__init__(kwargs)
+
+        self._name = __class_name__
+
+        self.__logger = get_logger(__name__)
+        """Logger
+        """
+
+#endregion
 
 #region Public Methods
 
