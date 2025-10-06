@@ -63,10 +63,10 @@ class ActionController():
 
 #region Constructor
 
-    def __init__(self):
+    def __init__(self, update_time=0.01):
         self.__logger = get_logger(__name__)
         """Logger
-        """        
+        """
 
         self.__actions_queue = queue.Queue()
         """Actions queue.
@@ -75,7 +75,7 @@ class ActionController():
         self.__action_update_timer = ThreadTimer("Action controller queue update timer.")
         """Action update timer.
         """
-        self.__action_update_timer.update_rate = 0.01 # Update time!
+        self.__action_update_timer.update_rate = update_time
         self.__action_update_timer.set_cb(self.__action_timer_cb)
 
         self.__action_cb = None
