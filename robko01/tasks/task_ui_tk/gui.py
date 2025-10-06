@@ -241,13 +241,13 @@ class GUI():
         if action == Actions.NONE:
             pass
 
-        if action == Actions.UPDATE_ABSOLUTE_POSITIONS:
+        if action == Actions.MOVE_ABSOLUTE:
             self.__controller.move_absolute(payload["data"])
 
-        elif action == Actions.UPDATE_SPEEDS:
+        elif action == Actions.MOVE_SPEED:
             self.__controller.move_speed(self.__current_speed)
 
-        elif action == Actions.UPDATE_OUTPUTS:
+        elif action == Actions.DIGITAL_OUTPUTS:
             self.__controller.set_outputs(self.__port_a_outputs)
 
         elif action == Actions.CLEAR_CONTROLLER:
@@ -297,7 +297,7 @@ class GUI():
         self.__target_position[1:12:2] = [self.__max_speed]*6 # speeds
 
         self.__action_controller.add_action({
-                "action": Actions.UPDATE_ABSOLUTE_POSITIONS,
+                "action": Actions.MOVE_ABSOLUTE,
                 "data": self.__target_position
                 })
 
@@ -308,7 +308,7 @@ class GUI():
         self.__target_position[1:12:2] = [speed]*6
 
         self.__action_controller.add_action({
-                "action": Actions.UPDATE_ABSOLUTE_POSITIONS,
+                "action": Actions.MOVE_ABSOLUTE,
                 "data": self.__target_position
                 })
 
@@ -348,7 +348,7 @@ class GUI():
 
         self.__current_speed[1] = speed * -1
         self.__action_controller.add_action({
-                "action": Actions.UPDATE_SPEEDS,
+                "action": Actions.MOVE_SPEED,
                 "data": self.__current_speed
                 })
 
@@ -356,7 +356,7 @@ class GUI():
 
         self.__current_speed[3] = speed * -1
         self.__action_controller.add_action({
-                "action": Actions.UPDATE_SPEEDS,
+                "action": Actions.MOVE_SPEED,
                 "data": self.__current_speed
                 })
 
@@ -365,7 +365,7 @@ class GUI():
         self.__current_speed[5] = speed
         self.__current_speed[11] = speed * -1
         self.__action_controller.add_action({
-                "action": Actions.UPDATE_SPEEDS,
+                "action": Actions.MOVE_SPEED,
                 "data": self.__current_speed
                 })
 
@@ -374,7 +374,7 @@ class GUI():
         self.__current_speed[7] = speed * -1
         self.__current_speed[9] = speed
         self.__action_controller.add_action({
-                "action": Actions.UPDATE_SPEEDS,
+                "action": Actions.MOVE_SPEED,
                 "data": self.__current_speed
                 })
 
@@ -383,7 +383,7 @@ class GUI():
         self.__current_speed[7] = speed
         self.__current_speed[9] = speed
         self.__action_controller.add_action({
-                "action": Actions.UPDATE_SPEEDS,
+                "action": Actions.MOVE_SPEED,
                 "data": self.__current_speed
                 })
 
@@ -391,7 +391,7 @@ class GUI():
 
         self.__current_speed[11] = speed
         self.__action_controller.add_action({
-                "action": Actions.UPDATE_SPEEDS,
+                "action": Actions.MOVE_SPEED,
                 "data": self.__current_speed
                 })
 
@@ -752,7 +752,7 @@ class GUI():
         if value != self.__port_a_outputs:
             self.__port_a_outputs = value
             self.__action_controller.add_action({
-                    "action": Actions.UPDATE_OUTPUTS,
+                    "action": Actions.DIGITAL_OUTPUTS,
                     "data": self.__port_a_outputs
                     })
 

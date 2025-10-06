@@ -337,7 +337,7 @@ class GUI(QApplication):
         self.__port_a_outputs += self.__window.cbOut7.isChecked() * 128
 
         self.__action_controller.add_action({
-                "action": Actions.UPDATE_OUTPUTS,
+                "action": Actions.DIGITAL_OUTPUTS,
                 "data": self.__port_a_outputs
                 })
 
@@ -347,9 +347,21 @@ class GUI(QApplication):
             if self.__jsc is not None:
                 self.__jsc.update()
 
-            self.__axis_states = self.__controller.is_moving()
-            self.__current_position = self.__controller.current_position()
-            self.__port_a_inputs = self.__controller.get_inputs()
+            self.__action_controller.add_action({
+                "action": Actions.IS_MOVING,
+                "data": None
+                })
+
+            self.__action_controller.add_action({
+                "action": Actions.CURRENT_POSITION,
+                "data": None
+                })
+
+            self.__action_controller.add_action({
+                "action": Actions.DIGITAL_INPUTS,
+                "data": None
+                })
+
 
             self.__update_displays_animation()
             self.__update_joint_pos()
@@ -375,7 +387,7 @@ class GUI(QApplication):
         self.__update_timer = ThreadTimer("UI update timer.")
         """Update timer.
         """
-        self.__update_timer.update_rate = 0.1 # Update time!
+        self.__update_timer.update_rate = 0.5 # Update time!
         self.__update_timer.set_cb(self.__update_time_cb)
 
 #endregion
@@ -389,17 +401,34 @@ class GUI(QApplication):
         if action == Actions.NONE:
             pass
 
-        if action == Actions.UPDATE_ABSOLUTE_POSITIONS:
-            self.__controller.move_absolute(payload["data"])
+        elif action == Actions.DISABLE:
+            self.__controller.disable()
 
-        elif action == Actions.UPDATE_SPEEDS:
-            self.__controller.move_speed(self.__current_speed)
-
-        elif action == Actions.UPDATE_OUTPUTS:
-            self.__controller.set_outputs(self.__port_a_outputs)
+        elif action == Actions.ENABLE:
+            self.__controller.enable()
 
         elif action == Actions.CLEAR_CONTROLLER:
             self.__controller.clear()
+
+        elif action == Actions.IS_MOVING:
+            self.__axis_states = self.__controller.is_moving()
+
+        elif action == Actions.DIGITAL_INPUTS:
+            self.__port_a_inputs = self.__controller.get_inputs()
+
+        elif action == Actions.CURRENT_POSITION:
+            self.__current_position = self.__controller.current_position()
+
+        elif action == Actions.MOVE_ABSOLUTE:
+            self.__controller.move_absolute(payload["data"])
+
+        elif action == Actions.MOVE_SPEED:
+            self.__controller.move_speed(self.__current_speed)
+
+        elif action == Actions.DIGITAL_OUTPUTS:
+            self.__controller.set_outputs(self.__port_a_outputs)
+
+
 
         elif action == Actions.RESET_CONTROLLER:
             pass
@@ -445,7 +474,7 @@ class GUI(QApplication):
         self.__target_position[1:12:2] = [self.__max_speed]*6 # speeds
 
         self.__action_controller.add_action({
-                "action": Actions.UPDATE_ABSOLUTE_POSITIONS,
+                "action": Actions.MOVE_ABSOLUTE,
                 "data": self.__target_position
                 })
 
@@ -456,7 +485,7 @@ class GUI(QApplication):
         self.__target_position[1:12:2] = [speed]*6
 
         self.__action_controller.add_action({
-                "action": Actions.UPDATE_ABSOLUTE_POSITIONS,
+                "action": Actions.MOVE_ABSOLUTE,
                 "data": self.__target_position
                 })
 
@@ -594,7 +623,7 @@ class GUI(QApplication):
         self.__current_speed[1] = speed * -1
 
         self.__action_controller.add_action({
-                "action": Actions.UPDATE_SPEEDS,
+                "action": Actions.MOVE_SPEED,
                 "data": self.__current_speed
                 })
 
@@ -603,7 +632,7 @@ class GUI(QApplication):
         self.__current_speed[3] = speed * -1
 
         self.__action_controller.add_action({
-                "action": Actions.UPDATE_SPEEDS,
+                "action": Actions.MOVE_SPEED,
                 "data": self.__current_speed
                 })
 
@@ -613,7 +642,7 @@ class GUI(QApplication):
         self.__current_speed[11] = speed * -1
 
         self.__action_controller.add_action({
-                "action": Actions.UPDATE_SPEEDS,
+                "action": Actions.MOVE_SPEED,
                 "data": self.__current_speed
                 })
 
@@ -622,7 +651,7 @@ class GUI(QApplication):
         self.__current_speed[7] = speed
 
         self.__action_controller.add_action({
-                "action": Actions.UPDATE_SPEEDS,
+                "action": Actions.MOVE_SPEED,
                 "data": self.__current_speed
                 })
 
@@ -631,7 +660,7 @@ class GUI(QApplication):
         self.__current_speed[9] = speed
 
         self.__action_controller.add_action({
-                "action": Actions.UPDATE_SPEEDS,
+                "action": Actions.MOVE_SPEED,
                 "data": self.__current_speed
                 })
 
@@ -640,7 +669,7 @@ class GUI(QApplication):
         self.__current_speed[11] = speed
 
         self.__action_controller.add_action({
-                "action": Actions.UPDATE_SPEEDS,
+                "action": Actions.MOVE_SPEED,
                 "data": self.__current_speed
                 })
 
@@ -1163,9 +1192,19 @@ class GUI(QApplication):
 
         self.__action_controller.start()
 
+        self.__action_controller.add_action({
+                "action": Actions.ENABLE,
+                "data": self.__current_speed
+                })
+
     def stop(self):
         """Stop
         """
+
+        self.__action_controller.add_action({
+                "action": Actions.DISABLE,
+                "data": self.__current_speed
+                })
 
         self.__update_timer.stop()
 

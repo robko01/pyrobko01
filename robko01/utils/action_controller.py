@@ -26,6 +26,8 @@ import queue
 
 from robko01.utils.thread_timer import ThreadTimer
 
+from robko01.utils.logger import get_logger
+
 #region File Attributes
 
 __author__ = "Orlin Dimitrov"
@@ -62,6 +64,10 @@ class ActionController():
 #region Constructor
 
     def __init__(self):
+        self.__logger = get_logger(__name__)
+        """Logger
+        """        
+
         self.__actions_queue = queue.Queue()
         """Actions queue.
         """
@@ -84,7 +90,11 @@ class ActionController():
         if not self.__actions_queue.empty():
             action = self.__actions_queue.get()
             if self.__action_cb is not None:
-                self.__action_cb(action)
+                try:
+                    self.__action_cb(action)
+                except Exception as e:
+                    self.__logger.error(e)
+
 
 #endregion
 
