@@ -24,7 +24,7 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
 import time
 
-from joystick import JoystickController
+from robko01.joystick.joystick import JoystickController
 from robko01.utils.utils import l_scale
 
 #region File Attributes
