@@ -25,8 +25,6 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 import time
 from struct import pack, unpack
 
-from robko01.controllers.base import BaseRobko01
-
 from robko01.exceptions.protocol import ControllerIsBusy
 from robko01.controllers.orlin369.protocol.package_manager import PackageManager
 from robko01.controllers.orlin369.op_code import OpCode
@@ -62,7 +60,7 @@ __status__ = "Debug"
 
 #endregion
 
-class Robko01(BaseRobko01):
+class Robko01(Robko01Base):
     """This class is dedicated to control robot controller made by Orlin Dimitrov.
     """
 

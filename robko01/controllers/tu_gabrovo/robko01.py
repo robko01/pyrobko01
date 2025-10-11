@@ -27,7 +27,7 @@ import time
 from enum import Enum
 
 from robko01.utils.logger import get_logger
-from robko01.controllers.base import BaseRobko01
+from robko01.controllers.base import Robko01Base
 
 #region File Attributes
 
@@ -71,7 +71,7 @@ class Joints(Enum):
     Pitch = 6
     Roll = 7
 
-class Robko01(BaseRobko01):
+class Robko01(Robko01Base):
     """This class is dedicated to drive Robko01 TU-GAB driver."""
 
 #region Attributes

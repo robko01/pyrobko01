@@ -24,7 +24,7 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
 import time
 
-from robko01.controllers.base import BaseRobko01
+from robko01.controllers.base import Robko01Base
 
 #region File Attributes
 
@@ -55,7 +55,7 @@ __status__ = "Debug"
 
 #endregion
 
-class Robko01(BaseRobko01):
+class Robko01(Robko01Base):
     """This class is dedicated to control robot controller made by Orlin Dimitrov.
     """
 
