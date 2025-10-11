@@ -23,9 +23,22 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 """
 
 import time
-import serial
 
-from robko01.communicators.base_communicator import BaseCommunicator
+# Lazy import for pyserial to avoid import-time failures when pyserial is not
+# installed. The module will raise ImportError when serial functionality is
+# actually needed.
+_serial = None
+def _get_serial():
+    global _serial
+    if _serial is None:
+        try:
+            import serial as _s
+        except Exception as exc:
+            raise ImportError("pyserial is required for serial communicator: pip install pyserial") from exc
+        _serial = _s
+    return _serial
+
+from robko01.communicators.base import CommunicatorBase
 
 from robko01.utils.logger import get_logger
 
@@ -58,7 +71,7 @@ __status__ = "Debug"
 
 #endregion
 
-class Communicator(BaseCommunicator):
+class Communicator(CommunicatorBase):
     """This class is dedicated to work with the serial interface."""
 
 #region Attributes
@@ -80,6 +93,7 @@ class Communicator(BaseCommunicator):
         """Logger
         """
 
+        serial = _get_serial()
         self.__client = serial.Serial(port)
         """Serial port.
         """

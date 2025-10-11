@@ -27,7 +27,7 @@ import socket
 
 from robko01.utils.logger import get_logger
 
-from robko01.communicators.base_communicator import BaseCommunicator
+from robko01.communicators.base import CommunicatorBase
 
 #region File Attributes
 
@@ -58,7 +58,7 @@ __status__ = "Debug"
 
 #endregion
 
-class Communicator(BaseCommunicator):
+class Communicator(CommunicatorBase):
     """This class is dedicated to work with the serial interface."""
 
 #region Attributes
