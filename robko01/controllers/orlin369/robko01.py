@@ -29,6 +29,7 @@ from robko01.exceptions.protocol import ControllerIsBusy
 from robko01.controllers.orlin369.protocol.package_manager import PackageManager
 from robko01.controllers.orlin369.op_code import OpCode
 from robko01.controllers.orlin369.status_code import StatusCode
+from robko01.controllers.base import Robko01Base
 from robko01.exceptions.protocol import InvalidPackage, InvalidOperationCode, InvalidStatusCode
 
 #region File Attributes
