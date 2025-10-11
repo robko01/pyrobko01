@@ -86,30 +86,17 @@ class Robko01Base(ABC):
         Raises:
             robko01.exceptions.ControllerConnectionError on failure.
         """
-        pass
 
     @abstractmethod
     def disconnect(self) -> None:
         """Close connection to the device and cleanup resources."""
-        pass
 
     @abstractmethod
     def is_connected(self) -> bool:
         """Return True if controller is currently connected."""
-        pass
-
-    @abstractmethod
-    def move_relative(self, positions: Sequence[int]) -> None:
-        """Move robot joints by relative amounts.
-
-        Args:
-            positions: sequence of integer steps for each axis/joint.
-        """
-        pass
 
     @abstractmethod
     def current_position(self) -> Tuple[int, ...]:
         """Return the current position as a tuple of ints."""
-        pass
 
 #endregion
