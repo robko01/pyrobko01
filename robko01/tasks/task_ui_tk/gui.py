@@ -40,7 +40,17 @@ from robko01.utils.axis_action_controller import AxisActionController
 from robko01.utils.actions import Actions
 from robko01.joystick.joystick import JoystickController
 
-import serial
+# Lazy import for optional dependency 'serial' (pyserial).
+_serial = None
+def _get_serial():
+    global _serial
+    if _serial is None:
+        try:
+            import serial as _s
+        except Exception as exc:
+            raise ImportError("pyserial is required for serial port features: pip install pyserial") from exc
+        _serial = _s
+    return _serial
 
 #region File Attributes
 
@@ -219,10 +229,15 @@ class GUI():
 
             self.__update_automation()
 
-        except serial.serialutil.SerialException as e:
-            self.__logger.info(e)
-
         except Exception as e:
+            try:
+                serial_mod = _get_serial()
+                if isinstance(e, serial_mod.serialutil.SerialException):
+                    self.__logger.info(e)
+                    return
+            except ImportError:
+                # pyserial not installed; fall through to generic logging
+                pass
             self.__logger.info(e)
 
     def __init_update_timer(self):
