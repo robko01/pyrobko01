@@ -57,9 +57,10 @@ GitHub = "https://github.com/robko01/pyrobko01"
 
 [tool.setuptools]
 include-package-data = true
+license-files = ["LICENSE"]
 
 [tool.setuptools.packages.find]
 include = ["robko01", "robko01.*"]
 
 [tool.setuptools.package-data]
-"robko01.tasks.task_ui_qt.ui" = ["*.ui"]
+"robko01.tasks.task_ui_qt" = ["*.ui"]
