@@ -47,31 +47,26 @@ class CommunicatorBase(ABC):
     def connect(self) -> None:
         """Connect to the device.
         """
-        pass
 
     @abstractmethod
     def disconnect(self) -> None:
         """Disconnect from device.
         """
-        pass
 
     @abstractmethod
     def reset(self):
         """Reset target device.
         """
-        pass
 
     @abstractmethod
     def send(self, payload):
         """Send
         """
-        pass
 
     @abstractmethod
     def receive(self):
         """Receive
         """
-        pass
 
     @abstractmethod
     def send_frame(self, req_frame):
@@ -80,6 +75,5 @@ class CommunicatorBase(ABC):
         Args:
             req_frame (bytes): Request frame.
         """
-        pass
 
 #endregion

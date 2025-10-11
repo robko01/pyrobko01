@@ -66,7 +66,8 @@ class Robko01Base(ABC):
 
 #region Constructor
 
-    def __init__(self) -> None:
+    def __init__(self, kwargs) -> None:
+
         self._time_to_stop: bool = False
         """Time to stop flag.
         """
@@ -74,6 +75,11 @@ class Robko01Base(ABC):
         self._communicator = None
         """Communicator instance.
         """
+
+        if 'communicator' in kwargs:
+            self._communicator = kwargs['communicator']
+            if self._communicator is None:
+                raise ValueError("Communicator can not be None.")
 
 #endregion
 

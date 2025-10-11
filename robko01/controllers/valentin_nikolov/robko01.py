@@ -65,16 +65,9 @@ class Robko01(Robko01Base):
 
 #region Constructor
 
-    def __init__(self, communicator):
-        super().__init__()
+    def __init__(self, **kwargs):
 
-
-        if communicator is None:
-            raise ValueError("Communicator can not be None.")
-
-        self.__communicator = communicator
-        """Communicator
-        """
+        super().__init__(kwargs)
 
         self.__is_moving_cb = None
         """Is moving callback.
@@ -89,12 +82,12 @@ class Robko01(Robko01Base):
     def connect(self):
         """Connect to the robot controller.
         """
-        self.__communicator.connect()
+        self._communicator.connect()
 
     def disconnect(self):
         """Disconnect from robot controller.
         """
-        self.__communicator.disconnect()
+        self._communicator.disconnect()
 
         return
 

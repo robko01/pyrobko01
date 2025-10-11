@@ -65,16 +65,9 @@ class Robko01(Robko01Base):
 
 #region Constructor
 
-    def __init__(self, communicator):
+    def __init__(self, **kwargs):
 
-        super().__init__()
-
-        if communicator is None:
-            raise ValueError("Communicator can not be None.")
-
-        self.__communicator = communicator
-        """Communicator
-        """
+        super().__init__(kwargs)
 
         self.__is_moving_cb = None
         """Is moving callback.
@@ -93,12 +86,12 @@ class Robko01(Robko01Base):
     def connect(self):
         """Connect to the robot controller.
         """
-        self.__communicator.connect()
+        self._communicator.connect()
 
     def disconnect(self):
         """Disconnect from robot controller.
         """
-        self.__communicator.disconnect()
+        self._communicator.disconnect()
 
     def stop(self):
         """Stop robot motion execution.
@@ -247,7 +240,7 @@ class Robko01(Robko01Base):
         q6 = int(0)
         out = self.__digital_outputs
         command = f"@STEP {d},{q1},{q2},{q3},{q4+q5},{q4-q5},{q6},{out}\r".encode('ASCII')
-        self.__communicator.send_frame(command)
+        self._communicator.send_frame(command)
         print(f"Command: {command}")
 
     def is_moving(self):

@@ -74,7 +74,7 @@ class Robko01(Robko01Base):
         if communicator is None:
             raise ValueError("Communicator can not be None.")
 
-        self.__communicator = communicator
+        self._communicator = communicator
         """Communicator
         """
 

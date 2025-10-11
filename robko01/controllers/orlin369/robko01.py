@@ -71,18 +71,11 @@ class Robko01(Robko01Base):
 
 #region Constructor
 
-    def __init__(self, communicator):
+    def __init__(self, **kwargs):
 
-        super().__init__()
+        super().__init__(kwargs)
 
-        if communicator is None:
-            raise ValueError("Communicator can not be None.")
-
-        self.__communicator = communicator
-        """Communicator
-        """
-
-        self.__pm = PackageManager(self.__communicator)
+        self.__pm = PackageManager(self._communicator)
         """Package manager.
         """
 
@@ -97,13 +90,17 @@ class Robko01(Robko01Base):
         """Connect to the robot controller.
         """
         time.sleep(1.0)
-        self.__communicator.connect()
+        self._communicator.connect()
         time.sleep(1.0)
 
     def disconnect(self):
         """Disconnect from robot controller.
         """
-        self.__communicator.disconnect()
+        self._communicator.disconnect()
+
+    def is_connected(self) -> bool:
+        """Return True if controller is currently connected."""
+        return self._communicator.is_connected()
 
     def ping(self, payload):
         """Ping the robot controller.

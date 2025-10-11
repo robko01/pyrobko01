@@ -215,4 +215,15 @@ class Communicator(CommunicatorBase):
         self.__client.setRTS(False)
         time.sleep(self.timeout)
 
+    def is_connected(self) -> bool:
+        """Return True if communicator is currently connected."""
+        status = False
+
+        try:
+            status = self.__client.isOpen()
+        except Exception:
+            pass
+
+        return status
+
 #endregion
