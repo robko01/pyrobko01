@@ -52,6 +52,6 @@ __status__ = "Debug"
 #endregion
 
 class UnreachablePosition(Exception):
-    """Unreachable position.
+    """Raised when a kinematics solver cannot reach the requested pose.
     """
     pass

@@ -22,7 +22,16 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
 """
 
-import pygame
+_pygame = None
+def _get_pygame():
+    global _pygame
+    if _pygame is None:
+        try:
+            import pygame as _pg
+        except Exception as exc:
+            raise ImportError("pygame is required for joystick support: pip install pygame") from exc
+        _pygame = _pg
+    return _pygame
 
 #region File Attributes
 
@@ -86,9 +95,13 @@ class JoystickController(object):
         """Update callback.
         """
 
-        pygame.init()
-        pygame.joystick.init()
-        self.__joystick = pygame.joystick.Joystick(index)
+        # Initialize pygame lazily. If pygame isn't installed, raise an
+        # informative ImportError only when code actually tries to use the
+        # joystick functionality.
+        pg = _get_pygame()
+        pg.init()
+        pg.joystick.init()
+        self.__joystick = pg.joystick.Joystick(index)
         """Joystick instance.
         """
         self.__joystick.init()
@@ -115,20 +128,21 @@ class JoystickController(object):
     def update(self):
         """Listen for events to happen.
         """
-        events = pygame.event.get()
+        pg = _get_pygame()
+        events = pg.event.get()
 
         for event in events:
 
-            if event.type == pygame.JOYAXISMOTION:
+            if event.type == pg.JOYAXISMOTION:
                 self.__axis_data[event.axis] = round(event.value, 2)
 
-            elif event.type == pygame.JOYBUTTONDOWN:
+            elif event.type == pg.JOYBUTTONDOWN:
                 self.__button_data[event.button] = True
 
-            elif event.type == pygame.JOYBUTTONUP:
+            elif event.type == pg.JOYBUTTONUP:
                 self.__button_data[event.button] = False
 
-            elif event.type == pygame.JOYHATMOTION:
+            elif event.type == pg.JOYHATMOTION:
                 self.__hat_data[event.hat] = event.value
 
         if self.__update_cb is not None:
