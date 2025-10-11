@@ -64,3 +64,17 @@ include = ["robko01", "robko01.*"]
 
 [tool.setuptools.package-data]
 "robko01.tasks.task_ui_qt" = ["*.ui"]
+
+[tool.black]
+line-length = 88
+target-version = ["py311"]
+
+[tool.isort]
+profile = "black"
+
+[tool.ruff]
+line-length = 88
+target-version = "py311"
+extend-select = ["I"]
+
+# mypy configuration lives in mypy.ini
