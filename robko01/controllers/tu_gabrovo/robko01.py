@@ -25,10 +25,9 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 import time
 
 from enum import Enum
-import serial
 
 from robko01.utils.logger import get_logger
-from robko01.controllers.base_robko01 import BaseRobko01
+from robko01.controllers.base import BaseRobko01
 
 #region File Attributes
 
@@ -258,6 +257,29 @@ class Robko01(BaseRobko01):
             command = "{0}{1}:{2}{3}:{4}"\
                 .format("?F", 2, direction, str(steps).zfill(4), str(delay).zfill(4))
             self.__communicator.request(command)
+
+    def _move_relative_impl(self, joint, delay, steps):
+        return self.move_relative(joint, delay, steps)
+
+    def move_relative(self, *args):
+        if len(args) == 1 and isinstance(args[0], (list, tuple)):
+            # positions list -> call move_relative for each joint found
+            positions = args[0]
+            # if positions length is 12 (pairs of step/speed)
+            if len(positions) >= 12:
+                # dispatch per-joint where non-zero
+                for joint_idx in range(6):
+                    steps = positions[joint_idx*2]
+                    delay = positions[joint_idx*2+1]
+                    if steps != 0 or delay != 0:
+                        self._move_relative_impl(joint_idx, delay, steps)
+                return None
+            else:
+                raise TypeError("positions list must have at least 12 elements")
+        elif len(args) == 3:
+            return self._move_relative_impl(args[0], args[1], args[2])
+        else:
+            raise TypeError("move_relative expects either positions list or (joint,delay,steps)")
             time.sleep(0.05)
             command = "{0}{1}:{2}{3}:{4}"\
                 .format("?F", 5, direction, str(steps).zfill(4), str(delay).zfill(4))

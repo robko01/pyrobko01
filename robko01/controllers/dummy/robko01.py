@@ -25,7 +25,8 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 import time
 from struct import pack, unpack
 
-from robko01.controllers.base_robko01 import BaseRobko01
+from robko01.controllers.base import BaseRobko01
+from robko01.utils.logger import get_logger
 
 #region File Attributes
 
@@ -81,6 +82,8 @@ class Robko01(BaseRobko01):
         """Current end-effector position.
         """
 
+        self.__logger = get_logger(__name__)
+
 #endregion
 
 #region Public Methods
@@ -88,12 +91,12 @@ class Robko01(BaseRobko01):
     def connect(self):
         """Connect to the robot controller.
         """
-        print("connect")
+        self.__logger.info("Connect to dummy controller.")
 
     def disconnect(self):
         """Disconnect from robot controller.
         """
-        print("disconnect")
+        self.__logger.info("Disconnect from dummy controller.")
 
     def ping(self, payload):
         """Ping the robot controller.
@@ -182,11 +185,11 @@ class Robko01(BaseRobko01):
 
         return response
 
-    def move_relative(self, current_point):
+    def _move_relative_impl(self, current_position):
         """Move relative to next robot position.
 
         Args:
-            current_point (list): New robot position.
+            current_position (list): New robot position.
 
         Raises:
             InvalidOperationCode: Invalid operation code.
@@ -201,11 +204,35 @@ class Robko01(BaseRobko01):
 
         return response
 
-    def move_absolute(self, current_point):
+    def move_relative(self, *args):
+        """Unified move_relative dispatcher.
+
+        Accepts either a single sequence of positions (the new, unified API)
+        or the old (joint, delay, steps) signature. Old-style calls are
+        forwarded to the original implementation which is now
+        `_move_relative_impl`.
+        """
+        if len(args) == 1 and isinstance(args[0], (list, tuple)):
+            return self._move_relative_impl(args[0])
+        elif len(args) == 3:
+            joint, delay, steps = args
+            # Map single-joint call into a full positions array expected by
+            # the implementation: place steps and delay at the appropriate
+            # indices and call the list-based implementation.
+            point = [0] * 12
+            idx = int(joint) * 2
+            if 0 <= idx < 12:
+                point[idx] = steps
+                point[idx + 1] = delay
+            return self._move_relative_impl(point)
+        else:
+            raise TypeError("move_relative expects either positions list or (joint,delay,steps)")
+
+    def move_absolute(self, current_position):
         """Move absolute to next robot position.
 
         Args:
-            current_point (_type_): _description_
+            current_position (_type_): _description_
 
         Raises:
             InvalidOperationCode: Invalid operation code.
@@ -218,7 +245,7 @@ class Robko01(BaseRobko01):
         response = None
         # TODO: Will explode.
 
-        self.__current_position = current_point
+        self.__current_position = current_position
 
         return response
 
@@ -286,11 +313,11 @@ class Robko01(BaseRobko01):
 
         return response
 
-    def move_speed(self, current_point):
+    def move_speed(self, current_position):
         """Move the robot in speed mode.
 
         Args:
-            current_point (list): New robot direction.
+            current_position (list): New robot direction.
 
         Raises:
             InvalidOperationCode: Invalid operation code.

@@ -24,7 +24,7 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
 import time
 
-from robko01.controllers.base_robko01 import BaseRobko01
+from robko01.controllers.base import BaseRobko01
 
 #region File Attributes
 
@@ -128,8 +128,6 @@ class Robko01(BaseRobko01):
             else:
                 raise InvalidPackage("Invalid package.")
 
-            time.sleep(self._sync_interval)
-
         return response
 
     def disable(self):
@@ -159,8 +157,6 @@ class Robko01(BaseRobko01):
                         OpCode.to_text(response.opcode)))
             else:
                 raise InvalidPackage("Invalid package.")
-
-            time.sleep(self._sync_interval)
 
         return response
 
@@ -192,8 +188,6 @@ class Robko01(BaseRobko01):
             else:
                 raise InvalidPackage("Invalid package.")
 
-            time.sleep(self._sync_interval)
-
         return response
 
     def clear(self):
@@ -224,15 +218,13 @@ class Robko01(BaseRobko01):
             else:
                 raise InvalidPackage("Invalid package.")
 
-            time.sleep(self._sync_interval)
-
         return response
 
-    def move_absolute(self, current_point):
+    def move_absolute(self, current_position):
         """Move absolute to next robot position.
 
         Args:
-            current_point (_type_): _description_
+            current_position (_type_): _description_
 
         Raises:
             InvalidOperationCode: Invalid operation code.
@@ -243,8 +235,8 @@ class Robko01(BaseRobko01):
             any: Communicator response.
         """
 
-        steps = current_point[0:12:2]
-        speed = max(current_point[1:12:2])
+        steps = current_position[0:12:2]
+        speed = max(current_position[1:12:2])
 
         d = abs(int(speed))
         q1 = round(steps[0], 0)

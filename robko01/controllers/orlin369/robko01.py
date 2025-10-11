@@ -25,15 +25,13 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 import time
 from struct import pack, unpack
 
-from robko01.controllers.base_robko01 import BaseRobko01
+from robko01.controllers.base import BaseRobko01
 
-from robko01.controllers.orlin369.exceptions.controller_is_busy import ControllerIsBusy
+from robko01.exceptions.protocol import ControllerIsBusy
 from robko01.controllers.orlin369.protocol.package_manager import PackageManager
 from robko01.controllers.orlin369.op_code import OpCode
 from robko01.controllers.orlin369.status_code import StatusCode
-from robko01.controllers.orlin369.exceptions.invalid_package import InvalidPackage
-from robko01.controllers.orlin369.exceptions.invalid_operation_code import InvalidOperationCode
-from robko01.controllers.orlin369.exceptions.invalid_status_code import InvalidStatusCode
+from robko01.exceptions.protocol import InvalidPackage, InvalidOperationCode, InvalidStatusCode
 
 #region File Attributes
 
@@ -257,11 +255,11 @@ class Robko01(BaseRobko01):
 
         return response
 
-    def move_relative(self, current_point):
+    def _move_relative_impl(self, current_position):
         """Move relative to next robot position.
 
         Args:
-            current_point (list): New robot position.
+            current_position (list): New robot position.
 
         Raises:
             InvalidOperationCode: Invalid operation code.
@@ -274,12 +272,12 @@ class Robko01(BaseRobko01):
         response = None
 
         payload = pack("<hhhhhhhhhhhh",\
-            int(current_point[0]), int(current_point[1]),\
-            int(current_point[2]), int(current_point[3]),\
-            int(current_point[4]), int(current_point[5]),\
-            int(current_point[6]), int(current_point[7]),\
-            int(current_point[8]), int(current_point[9]),\
-            int(current_point[10]), int(current_point[11]))
+            int(current_position[0]), int(current_position[1]),\
+            int(current_position[2]), int(current_position[3]),\
+            int(current_position[4]), int(current_position[5]),\
+            int(current_position[6]), int(current_position[7]),\
+            int(current_position[8]), int(current_position[9]),\
+            int(current_position[10]), int(current_position[11]))
         response = self.__pm.request(OpCode.MoveRelative.value, payload)
         if response.is_valid():
             if response.status == StatusCode.Ok.value:
@@ -298,11 +296,26 @@ class Robko01(BaseRobko01):
 
         return response
 
-    def move_absolute(self, current_point):
+    # wrapper supports both unified and legacy signatures
+    def move_relative(self, *args):
+        if len(args) == 1 and isinstance(args[0], (list, tuple)):
+            return self._move_relative_impl(args[0])
+        elif len(args) == 3:
+            joint, delay, steps = args
+            point = [0] * 12
+            idx = int(joint) * 2
+            if 0 <= idx < 12:
+                point[idx] = steps
+                point[idx + 1] = delay
+            return self._move_relative_impl(point)
+        else:
+            raise TypeError("move_relative expects either positions list or (joint,delay,steps)")
+
+    def move_absolute(self, current_position):
         """Move absolute to next robot position.
 
         Args:
-            current_point (_type_): _description_
+            current_position (_type_): _description_
 
         Raises:
             InvalidOperationCode: Invalid operation code.
@@ -314,12 +327,12 @@ class Robko01(BaseRobko01):
         """
         response = None
         payload = pack("<hhhhhhhhhhhh",\
-            int(current_point[0]), int(current_point[1]),\
-            int(current_point[2]), int(current_point[3]),\
-            int(current_point[4]), int(current_point[5]),\
-            int(current_point[6]), int(current_point[7]),\
-            int(current_point[8]), int(current_point[9]),\
-            int(current_point[10]), int(current_point[11]))
+            int(current_position[0]), int(current_position[1]),\
+            int(current_position[2]), int(current_position[3]),\
+            int(current_position[4]), int(current_position[5]),\
+            int(current_position[6]), int(current_position[7]),\
+            int(current_position[8]), int(current_position[9]),\
+            int(current_position[10]), int(current_position[11]))
         response = self.__pm.request(OpCode.MoveAbsolute.value, payload)
         if response.is_valid():
             if response.status == StatusCode.Ok.value:
@@ -466,11 +479,11 @@ class Robko01(BaseRobko01):
 
         return arr
 
-    def move_speed(self, current_point):
+    def move_speed(self, current_position):
         """Move the robot in speed mode.
 
         Args:
-            current_point (list): New robot direction.
+            current_position (list): New robot direction.
 
         Raises:
             InvalidOperationCode: Invalid operation code.
@@ -483,12 +496,12 @@ class Robko01(BaseRobko01):
         response = None
 
         payload = pack("<hhhhhhhhhhhh",\
-            current_point[0], current_point[1],\
-            current_point[2], current_point[3],\
-            current_point[4], current_point[5],\
-            current_point[6], current_point[7],\
-            current_point[8], current_point[9],\
-            current_point[10], current_point[11])
+            current_position[0], current_position[1],\
+            current_position[2], current_position[3],\
+            current_position[4], current_position[5],\
+            current_position[6], current_position[7],\
+            current_position[8], current_position[9],\
+            current_position[10], current_position[11])
         response = self.__pm.request(OpCode.MoveSpeed.value, payload)
         if response.is_valid():
             if response.status == StatusCode.Ok.value:

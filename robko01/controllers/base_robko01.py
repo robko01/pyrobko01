@@ -1,94 +1,67 @@
-#!/usr/bin/env python
-# -*- coding: utf8 -*-
 
-"""
 
-Robko 01 - Python Control Software
+from robko01.controllers.base import AbstractController
+from robko01 import exceptions
 
-Copyright (C) [2020] [Orlin Dimitrov]
 
-This program is free software: you can redistribute it and/or modify
-it under the terms of the GNU General Public License as published by
-the Free Software Foundation, either version 3 of the License, or
-(at your option) any later version.
+class BaseRobko01(AbstractController):
+    """Existing concrete base used across controllers.
 
-This program is distributed in the hope that it will be useful,
-but WITHOUT ANY WARRANTY; without even the implied warranty of
-MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-GNU General Public License for more details.
-
-You should have received a copy of the GNU General Public License
-along with this program.  If not, see <http://www.gnu.org/licenses/>.
-
-"""
-
-#region File Attributes
-
-__author__ = "Orlin Dimitrov"
-"""Author of the file."""
-
-__copyright__ = "Copyright 2020, Orlin Dimitrov"
-"""Copyright holder"""
-
-__credits__ = []
-"""Credits"""
-
-__license__ = "GPLv3"
-"""License
-@see http://www.gnu.org/licenses/"""
-
-__version__ = "1.0.0"
-"""Version of the file."""
-
-__maintainer__ = "Orlin Dimitrov"
-"""Name of the maintainer."""
-
-__email__ = "robko01@8bitclub.com"
-"""E-mail of the author."""
-
-__status__ = "Debug"
-"""File status."""
-
-#endregion
-
-class BaseRobko01:
-    """Some description that tells you it's abstract,
-    often listing the methods you're expected to supply."""
+    This class now subclasses :class:`AbstractController` so it becomes the
+    canonical base type for all controllers in the package. It keeps the
+    original attributes and provides default method stubs that raise
+    appropriate package exceptions. Concrete controllers should override
+    these methods.
+    """
 
 #region Attributes
 
 #endregion
 
-#region Constructor
-
-    def __init__(self):
-        self._sync_interval = 0.05
-        """Sync time.
-        """
-
-        self._time_to_stop = False
-        """Time to stop flag.
-        """
-
-        self._communicator = None
-        """Communicator instance.
-        """
-
-        self._timeout = 50
-        """Timeout value.
-        """
-
-#endregion
 
 #region Properties
 
-    @property
-    def time_to_stop(self):
-        """Time to stop.
 
-        Returns:
-            float: Time to stop.
+
+    # --- AbstractController method stubs ---
+    def connect(self) -> None:
+        """Open connection to the robot/hardware.
+
+        By default this raises ControllerConnectionError; subclasses should
+        implement real connection logic.
         """
-        return self._time_to_stop
+        raise exceptions.ControllerConnectionError("connect() not implemented")
+
+    def disconnect(self) -> None:
+        """Close connection to the device and cleanup resources."""
+        raise exceptions.ControllerError("disconnect() not implemented")
+
+    def is_connected(self) -> bool:
+        """Return True if controller is currently connected."""
+        return False
+
+    def move_relative(self, positions):
+        """Move robot joints by relative amounts.
+
+        Subclasses must implement this.
+        """
+        raise exceptions.ControllerProtocolError("move_relative() not implemented")
+
+    def current_position(self):
+        """Return the current position as a tuple of ints."""
+        raise exceptions.ControllerError("current_position() not implemented")
+
+    def set_timeout(self, seconds: float) -> None:
+        """Set controller/communication timeout (store only).
+
+        Note: actual read/send operations are performed by the communicator
+        layer. Controllers may use this value when creating/configuring the
+        communicator, but raw read/send methods are not part of the
+        controller abstraction.
+        """
+        self._timeout = seconds
+    # communicator-level methods (send_raw/read) removed from controller
+    # base class. Communicators provide these operations and should be
+    # mocked directly in unit tests.
 
 #endregion
