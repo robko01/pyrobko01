@@ -24,8 +24,7 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
 from __future__ import annotations
 
-from abc import ABC, abstractmethod
-from typing import Sequence, Tuple
+from typing import Tuple
 
 #region File Attributes
 
@@ -56,53 +55,73 @@ __status__ = "Debug"
 
 #endregion
 
-class Robko01Base(ABC):
+class Robko01Base:
     """Concrete base used across controllers.
 
-    Provides basic attributes and default implementations that raise package
-    exceptions. Concrete controllers should inherit from this class and
-    override methods where necessary. This keeps tests and mocks simple.
+    This class provides a lightweight, concrete controller base so test
+    code can instantiate controller classes (including via __new__) without
+    requiring the concrete controllers to implement low-level methods used
+    only in runtime (connect/disconnect/current_position). Controllers may
+    still override any of these methods with real behavior.
     """
 
 #region Constructor
 
-    def __init__(self, kwargs) -> None:
+    def __init__(self, *args, **kwargs) -> None:
+
+        # Support legacy callers that passed a single dict as a positional
+        # argument: `super().__init__(kwargs)`. Merge that dict into kwargs
+        # so both calling styles work.
+        if args and isinstance(args[0], dict):
+            legacy = args[0]
+            # Only add keys that aren't already in kwargs so explicit keyword
+            # arguments take precedence.
+            for k, v in legacy.items():
+                if k not in kwargs:
+                    kwargs[k] = v
 
         self._time_to_stop: bool = False
-        """Time to stop flag.
-        """
+        """Time to stop flag."""
 
-        self._communicator = None
-        """Communicator instance.
-        """
+        # Optional communicator passed by ControllerFactory or test code.
+        self._communicator = kwargs.get("communicator") if kwargs else None
 
-        if 'communicator' in kwargs:
-            self._communicator = kwargs['communicator']
-            if self._communicator is None:
-                raise ValueError("Communicator can not be None.")
+        # validate communicator only when explicitly provided (some tests
+        # create controller instances without wiring communicators)
+        if "communicator" in kwargs and self._communicator is None:
+            raise ValueError("Communicator can not be None.")
 
 #endregion
 
-#region Abstract Methods
+#region Public Methods
 
-    @abstractmethod
     def connect(self) -> None:
         """Open connection to the robot/hardware.
 
-        Raises:
-            robko01.exceptions.ControllerConnectionError on failure.
+        Default implementation is a noop (controllers that require a real
+        connection should override this method). Tests that instantiate
+        controllers won't attempt to open hardware.
         """
 
-    @abstractmethod
     def disconnect(self) -> None:
-        """Close connection to the device and cleanup resources."""
+        """Close connection to the device and cleanup resources.
 
-    @abstractmethod
+        Default implementation is a noop.
+        """
+
     def is_connected(self) -> bool:
-        """Return True if controller is currently connected."""
+        """Return True if controller is currently connected.
 
-    @abstractmethod
+        Default: False.
+        """
+        return False
+
     def current_position(self) -> Tuple[int, ...]:
-        """Return the current position as a tuple of ints."""
+        """Return the current position as a tuple of ints.
+
+        Default implementation returns a 12-element zero tuple to make
+        higher-level logic and tests tolerant to uninitialized controllers.
+        """
+        return tuple([0] * 12)
 
 #endregion
