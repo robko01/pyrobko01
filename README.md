@@ -140,9 +140,9 @@ trajectory = [ \
 
 # Run trough trajectory points.
 for position in trajectory:
-    current_point = scale_speeds(position, speed)            
-    controller.move_relative(current_point)
-    current_point = controller.current_position()
+    current_position = scale_speeds(position, speed)            
+    controller.move_relative(current_position)
+    current_position = controller.current_position()
 
 ```
 
