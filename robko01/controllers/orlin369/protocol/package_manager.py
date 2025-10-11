@@ -61,7 +61,7 @@ class PackageManager:
 
     def __init__(self, communicator):
 
-        self.__communicator = communicator
+        self._communicator = communicator
 
 #endregion
 
@@ -134,7 +134,7 @@ class PackageManager:
         req_frame.append(crc[0])
         req_frame.append(crc[1])
 
-        res_frame = self.__communicator.send_frame(req_frame)
+        res_frame = self._communicator.send_frame(req_frame)
         list_res_frame = list(res_frame)
 
         return Response(list(list_res_frame))
