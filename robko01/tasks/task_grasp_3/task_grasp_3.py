@@ -103,11 +103,11 @@ class TaskGrasp3(BaseTask):
 
         for position in trajectory:
             print("Target:", position)
-            current_point = scale_speeds(position, speed)
-            print("Result:", current_point)
-            self._controller.move_absolute(current_point)
-            current_point = self._controller.current_position()
-            print("Reach:", current_point)
+            current_position = scale_speeds(position, speed)
+            print("Result:", current_position)
+            self._controller.move_absolute(current_position)
+            current_position = self._controller.current_position()
+            print("Reach:", current_position)
             print("")
 
 #endregion

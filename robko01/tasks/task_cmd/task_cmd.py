@@ -200,14 +200,14 @@ class TaskCmd(BaseTask):
 
             elif command == "pos":
 
-                current_point = self._controller.current_position()
-                self.__logger.info("Current position:", current_point)
+                current_position = self._controller.current_position()
+                self.__logger.info("Current position:", current_position)
 
             elif command == "add_c_pos":
 
-                current_point = self._controller.current_position()
-                self.__logger.info("Current position:", current_point)
-                poses.append(current_point)
+                current_position = self._controller.current_position()
+                self.__logger.info("Current position:", current_position)
+                poses.append(current_position)
 
             elif command == "ls_pos":
 

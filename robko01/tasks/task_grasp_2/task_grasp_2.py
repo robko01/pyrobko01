@@ -132,11 +132,11 @@ class TaskGrasp2(BaseTask):
                 break
 
             self.__logger.debug("Target: {}".format(position))
-            current_point = scale_speeds(position, speed)
-            self.__logger.debug("Result: {}".format(current_point))
-            self._controller.move_relative(current_point)
-            current_point = self._controller.current_position()
-            self.__logger.debug("Reach: {}".format(current_point))
+            current_position = scale_speeds(position, speed)
+            self.__logger.debug("Result: {}".format(current_position))
+            self._controller.move_relative(current_position)
+            current_position = self._controller.current_position()
+            self.__logger.debug("Reach: {}".format(current_position))
             self.__logger.debug("")
 
         response = self._controller.is_moving()
