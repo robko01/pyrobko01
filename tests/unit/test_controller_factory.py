@@ -10,8 +10,12 @@ class DummyComm:
 
 
 def test_create_dummy_controller():
-    ctrl = ControllerFactory.create(interface="serial", port="0", cname="dummy", timeout="1")
+    # use the 'dummy' interface so no real communicator is created
+    ctrl = ControllerFactory.create(interface="dummy", port="0", cname="dummy", timeout="1")
     assert ctrl is not None
+    # Basic protocol conformance: duck-type check for expected methods
+    assert hasattr(ctrl, "connect")
+    assert hasattr(ctrl, "disconnect")
 
 
 def test_create_orlin_with_mocked_serial(monkeypatch):
@@ -22,6 +26,7 @@ def test_create_orlin_with_mocked_serial(monkeypatch):
 
     ctrl = ControllerFactory.create(interface="serial", port="COM5", cname="orlin369", timeout="1")
     assert ctrl is not None
+    assert hasattr(ctrl, "move_relative")
 
 
 def test_bad_interface_raises():
@@ -30,5 +35,6 @@ def test_bad_interface_raises():
 
 
 def test_unsupported_controller_raises():
+    # Use the 'dummy' interface to avoid trying to open a real serial port
     with pytest.raises(NotImplementedError):
-        ControllerFactory.create(interface="serial", port="COM5", cname="unknown", timeout="1")
+        ControllerFactory.create(interface="dummy", port="COM5", cname="unknown", timeout="1")
