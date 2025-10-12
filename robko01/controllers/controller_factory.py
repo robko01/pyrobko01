@@ -108,13 +108,13 @@ class ControllerFactory:
             raise ValueError("Controller type can not be None.")
 
         elif controller_name == "dummy":
-            controller = Dummy(communicator)
+            controller = Dummy(communicator=communicator)
 
         elif controller_name == "orlin369":
-            controller = Orko01(communicator)
+            controller = Orko01(communicator=communicator)
 
         elif controller_name == "tugab":
-            controller = Gabko01(GabkoPM(kwargs))
+            controller = Gabko01(communicator=GabkoPM(kwargs))
 
         else:
             raise NotImplementedError(f"The specified controller name does not have implementation: {controller_name}")

@@ -47,7 +47,20 @@ from PySide6.QtWidgets import QApplication, QMessageBox, QFileDialog
 from PySide6.QtCore import QEvent, QObject, Qt, Signal, Slot, QThread, Qt
 from PySide6.QtGui import QAction, QTextCursor, QIcon
 
-import serial
+# Lazy import for optional dependency 'serial' (pyserial). Import only when used
+# to avoid ModuleNotFoundError during test collection or on systems without
+# pyserial installed.
+_serial = None
+def _get_serial():
+    global _serial
+    if _serial is None:
+        try:
+            import serial as _s
+        except Exception as exc:  # ImportError or other import-time issues
+            raise ImportError("pyserial is required for serial port features: "
+                              "pip install pyserial") from exc
+        _serial = _s
+    return _serial
 
 #region File Attributes
 
@@ -377,8 +390,19 @@ class GUI(QApplication):
             #     if self.__axis_controllers[5].direction == -1:
             #         self.__axis_controllers[5].stop()
 
-        except serial.serialutil.SerialException as exc:
-            self.__logger.error(exc)
+        except Exception as exc:
+            # Map serial exceptions if pyserial is available, otherwise log the
+            # underlying exception. We avoid importing serial at module import
+            # time to keep test discovery safe.
+            try:
+                serial_mod = _get_serial()
+                if isinstance(exc, serial_mod.serialutil.SerialException):
+                    self.__logger.error(exc)
+                else:
+                    self.__logger.error(traceback.format_exc())
+            except ImportError:
+                # pyserial is not installed; log the exception generically.
+                self.__logger.error(traceback.format_exc())
 
         except Exception as exc:
             self.__logger.error(traceback.format_exc())
@@ -387,7 +411,7 @@ class GUI(QApplication):
         self.__update_timer = ThreadTimer("UI update timer.")
         """Update timer.
         """
-        self.__update_timer.update_rate = 0.5 # Update time!
+        self.__update_timer.update_rate = 0.3 # Update time!
         self.__update_timer.set_cb(self.__update_time_cb)
 
 #endregion
@@ -427,8 +451,6 @@ class GUI(QApplication):
 
         elif action == Actions.DIGITAL_OUTPUTS:
             self.__controller.set_outputs(self.__port_a_outputs)
-
-
 
         elif action == Actions.RESET_CONTROLLER:
             pass
@@ -493,7 +515,7 @@ class GUI(QApplication):
             pass
 
     def __init_action_controller(self):
-        self.__action_controller = ActionController()
+        self.__action_controller = ActionController(0.001)
         """Action controller.
         """
         self.__action_controller.set_action_cb(self.__action_controller_cb)

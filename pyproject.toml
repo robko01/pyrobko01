@@ -7,42 +7,69 @@ name = "robko01"
 version = "1.0.0"
 description = "Robko 01 control library."
 readme = "README.md"
-requires-python = ">=3.7"
+requires-python = ">=3.8"
 license = { text = "GPL-3.0-or-later" }
 authors = [
     { name = "Orlin Dimitrov", email = "robko01@8bitclub.com" }
 ]
 keywords = ["robot", "robko01", "control"]
 classifiers = [
-    "Development Status :: 1 - Planning",
+    "Development Status :: 4 - Beta",
     "Environment :: Console",
     "Intended Audience :: Developers",
     "License :: OSI Approved :: GNU General Public License v3 (GPLv3)",
-    "Programming Language :: Python",
-    "Programming Language :: Python :: 3 :: Only",
+    "Programming Language :: Python :: 3",
+    "Programming Language :: Python :: 3.8",
+    "Programming Language :: Python :: 3.9",
+    "Programming Language :: Python :: 3.10",
     "Topic :: Software Development",
     "Topic :: Robot Programming"
 ]
 dependencies = [
-    "pygame",
     "pyserial",
+    "pygame",
     "PySide6",
     "PySide6-Addons",
     "PySide6-Essentials",
-    "shiboken6"
+    "shiboken6",
 ]
 
-[project.urls]
-GitHub = "https://github.com/robko01/pyrobko01"
+[project.optional-dependencies]
+dev = [
+    "pytest>=7.0",
+    "pytest-mock",
+    "black",
+    "ruff",
+    "mypy",
+]
+
 
 [project.scripts]
 robko01 = "robko01.__main__:main"
 
+[project.urls]
+GitHub = "https://github.com/robko01/pyrobko01"
+
 [tool.setuptools]
 include-package-data = true
+license-files = ["LICENSE"]
 
 [tool.setuptools.packages.find]
 include = ["robko01", "robko01.*"]
 
 [tool.setuptools.package-data]
-"robko01.tasks.task_ui_qt.ui" = ["*.ui"]
+"robko01.tasks.task_ui_qt" = ["*.ui"]
+
+[tool.black]
+line-length = 88
+target-version = ["py311"]
+
+[tool.isort]
+profile = "black"
+
+[tool.ruff]
+line-length = 88
+target-version = "py311"
+extend-select = ["I"]
+
+# mypy configuration lives in mypy.ini

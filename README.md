@@ -1,112 +1,127 @@
-# Intro
-Robko01 API library
-This document is devoted to the way client software is installed, which communicates with the robot controller.
+# robko01 — Robko 01 control library
 
-# Installation
+Robko01 (robko01) is a small, test-friendly Python library and command-line
+tool for controlling Robko 01-compatible robot controllers. It provides:
 
-## Environment
+- Communicators: serial, TCP, UDP (pluggable implementations)
+- Controller implementations for several firmwares
+- Small UI tasks and utilities for testing and development
 
- - For better experience is good to have git client. This will will alow you to install easy from github this library. The link to the [git client](https://git-scm.com/download/win).
+This repository aims to make it easy to script robot motions, run simple UIs,
+and develop new controller backends without requiring hardware during testing.
 
- - This script is written in Python 3.8.5. To [download](https://www.python.org/downloads/) it please visit official site of the Python and download [3.8.5](https://www.python.org/ftp/python/3.8.5/python-3.8.5.exe)
+Table of contents
+-----------------
 
+- Installation (Windows / Linux / macOS)
+- Quick examples (programmatic dummy, CLI serial, trajectory runner)
+- Contributing
+- License
 
-## Create a virtual environment (Optional)
- - Make virtual environment
-```sh
+Requirements
+------------
+
+- Python 3.8 or newer
+- Required runtime dependencies:
+    - `pyserial` for serial communicators
+    - `pygame` for joystick/support and game-related tasks
+    - `PySide6`, `PySide6-Addons`, `PySide6-Essentials`, and `shiboken6` for
+        the Qt-based UI tasks
+
+If you plan to develop or run tests, install the `dev` extras to get linters
+and test dependencies.
+
+Installation
+------------
+
+Recommended: create and activate a virtual environment before installing.
+
+Windows (PowerShell)
+
+```powershell
 python -m venv .venv
+# Activate
+.\.venv\Scripts\Activate.ps1
+python -m pip install --upgrade pip
 ```
 
- - For Windows machines
-```sh
-.venv/bin/activate
-```
- - For Linux or macOS machines:
-```sh
-source .venv/bin/activate
-```
+Linux / macOS (bash)
 
-## Update the environment
- - Update the pip system
 ```bash
-python -m pip install --upgrade pip 
+python3 -m venv .venv
+source .venv/bin/activate
+python -m pip install --upgrade pip
 ```
 
-## Install the library
- - Install the repository from link
-```sh
-python -m pip install git+https://github.com/robko01/pyrobko01.git#egg=robko01
-```
- - You are ready for the first run.
+Install options
+---------------
 
-## Install the library manually (optional)
- - Download the repository from [link](git+https://github.com/robko01/pyrobko01)
+- Editable install for development (recommended when contributing):
 
- - Install setuptools
-```sh
-python -m pip install setuptools
+```powershell
+python -m pip install -e .
+# with development extras (linters, tests):
+python -m pip install -e .[dev]
 ```
 
- - Unzip the downloaded repo.
- - Navigate to the unzipped folder in terminal.
- - Install the package
-```sh
-python setup.py install
-```
- - You are ready for the first run.
+- Direct install from GitHub (non-editable):
 
-## First run
-After installation, the script is ready for operation. This happens in the following way.
+```powershell
+# Latest main branch
+python -m pip install "git+https://github.com/robko01/pyrobko01.git"
 
- - For Windows machines:
-```sh
-python -m robko01 --interface serial --port COM<NUMBER> --task task_ui_qt
-```
-or
-```sh
-python -m robko01 --interface serial --port COM<NUMBER> --task task_ui_tk
+# Include development extras when installing from GitHub
+python -m pip install "git+https://github.com/robko01/pyrobko01.git#egg=robko01[dev]"
 ```
 
- - For Linux machines:
-```sh
-python3 -m robko01 --interface serial --port /dev/ttyUSB<NUMBER> --task task_ui_qt
-```
- - For macOS machines:
-```sh
-python3 -m robko01 --interface serial --port /dev/cu.usbserial-1110 --task task_ui_qt
-```
+Notes
+-----
 
- - To approach the robot, it will be presented to the computer as a serial port.
- - The example is marked `COM5`, `/dev/ttyUSB0` or `/dev/cu.usbserial-1110`.
- - You need to find out which is the correct port for you by using the device manager.
- - The argument `--task` serves to indicate which program to execute the robot.
+- If the package is uploaded to PyPI in the future, you could install with
+    `python -m pip install robko01`.
+- Extras: `.[dev]` — check `pyproject.toml` for available extras.
 
-## Second run
-Affter First Run you might want try it over the socket so consider to try this one!
+Uninstall
+---------
 
- - For Windows machines:
-```sh
-python -m robko01 --interface tcp --port 10182 --host 192.168.1.100 --timeout 10 --task task_ui_qt
-```
- - For Linux machines:
-```sh
-python3 -m robko01 --interface tcp --port 10182 --host 192.168.1.100 --timeout 10 --task task_ui_qt
-```
- - For macOS machines:
-```sh
-python3 -m robko01 --interface tcp --port 10182 --host 192.168.1.100 --timeout 10 --task task_ui_qt
+Windows (PowerShell)
+
+```powershell
+python -m pip uninstall robko01
 ```
 
+Linux / macOS (bash)
 
-# Examples
+```bash
+python3 -m pip uninstall robko01
+```
 
-## Example 1
+Quick examples
+--------------
 
-In this example we will:
+1) Programmatic example (safe to run without hardware — uses `dummy`)
 
- - Create a controller.
- - Connect to the robot.
- - Do a simple motion.
+```py
+from robko01.controllers.controller_factory import ControllerFactory
+
+# Create a dummy controller (no hardware required)
+ctrl = ControllerFactory.create(interface="dummy", port="0", cname="dummy", timeout=1)
+
+# Build a 12-value move_relative payload: [steps,delay]*6 axes
+positions = [0] * 12
+positions[0] = 450  # steps for axis 0
+positions[1] = 100  # delay for axis 0
+
+ctrl.move_relative(positions)
+print("Current position:", ctrl.current_position())
+ctrl.disconnect()
+```
+
+2) Serial controller script example
+
+Use this script to connect to a Robko01 controller over a serial port and
+run a sequence of relative moves. Replace `COM1` with your platform-specific
+port name (for Linux use `/dev/ttyUSB0` or similar).
 
 ```py
 #!/usr/bin/env python
@@ -116,68 +131,91 @@ from robko01.controllers.controller_factory import ControllerFactory
 
 port = "COM1" # You should change it according to your setup.
 cname = "orlin369"
+interface = "serial"
 
 # Controller
-controller = ControllerFactory.create(interface="serial" port=port, cname=cname)
+controller = ControllerFactory.create(interface=interface, port=port, cname=cname)
 
 # Set the speed.
 speed = 150
 
 # Trajectory path.
 trajectory = [ \
-    [450, 0, 600, 0, -400, 0, 200, 0, -200, 0, 400, 0], \
-    [0, 0, 0, 0, 0, 0, 110, 0, 110, 0, 0, 0], \
-    [0, 0, 100, 0, 0, 0, 0, 0, 0, 0, 0, 0], \
-    [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, -100, 0], \
-    [0, 0, -100, 0, 0, 0, 0, 0, 0, 0, 0, 0], \
-    [-900, 0, 0, 0, 0, 0, -200, 0, -200, 0, 0, 0], \
-    [0, 0, 100, 0, 0, 0, 0, 0, 0, 0, 0, 0], \
-    [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 100, 0], \
-    [0, 0, -100, 0, 0, 0, 0, 0, 0, 0, 0, 0], \
-    [0, 0, 0, 0, 0, 0, 110, 0, 110, 0, 0, 0], \
-    [450, 0, -600, 0, 400, 0, -220, 0, 180, 0, -400, 0] \
-    ]
+        [450, 0, 600, 0, -400, 0, 200, 0, -200, 0, 400, 0], \
+        [0, 0, 0, 0, 0, 0, 110, 0, 110, 0, 0, 0], \
+        [0, 0, 100, 0, 0, 0, 0, 0, 0, 0, 0, 0], \
+        [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, -100, 0], \
+        [0, 0, -100, 0, 0, 0, 0, 0, 0, 0, 0, 0], \
+        [-900, 0, 0, 0, 0, 0, -200, 0, -200, 0, 0, 0], \
+        [0, 0, 100, 0, 0, 0, 0, 0, 0, 0, 0, 0], \
+        [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 100, 0], \
+        [0, 0, -100, 0, 0, 0, 0, 0, 0, 0, 0, 0], \
+        [0, 0, 0, 0, 0, 0, 110, 0, 110, 0, 0, 0], \
+        [450, 0, -600, 0, 400, 0, -220, 0, 180, 0, -400, 0] \
+        ]
 
 # Run trough trajectory points.
 for position in trajectory:
-    current_point = scale_speeds(position, speed)            
-    controller.move_relative(current_point)
-    current_point = controller.current_position()
+        current_position = scale_speeds(position, speed)            
+        controller.move_relative(current_position)
+        current_position = controller.current_position()
 
 ```
 
-## Uninstall the library
-In case you would like to remove the library use the following command.
+3) Trajectory runner (script using `dummy` communicator)
 
- - For Windows machines:
-```sh
-python -m pip uninstall robko01
+Save as `run_trajectory.py` and run from an activated virtualenv.
+
+```py
+from robko01.controllers.controller_factory import ControllerFactory
+
+ctrl = ControllerFactory.create(interface="dummy", port="0", cname="dummy", timeout=1)
+
+trajectory = [
+        [450,0, 600,0, -400,0, 200,0, -200,0, 400,0],
+        [0]*12,
+]
+
+for pos in trajectory:
+        ctrl.move_relative(pos)
+        print("position ->", ctrl.current_position())
+
+ctrl.disconnect()
 ```
 
- - For Linux machines:
-```sh
-python3 -m pip uninstall robko01
+Running tests
+-------------
+
+To run the test suite locally (after an editable install with dev extras):
+
+```powershell
+# from project root
+python -m pip install -e .[dev]
+pytest -q
 ```
 
- - For NacOS machines:
-```sh
-python3 -m pip uninstall robko01
-```
+Contributing
+------------
 
-# Contributing
+We welcome contributions. See [CONTRIBUTING.md](CONTRIBUTING.md) for a
+step-by-step developer setup guide (virtualenv, installing dev extras,
+pre-commit hooks and running linters/tests).
 
-If you'd like to contribute to this project, please follow these steps:
+If you're preparing a PR please:
 
-1. Fork the repository on GitHub.
-2. Clone your forked repository to your local machine.
-3. Create a new branch for your changes: `git checkout -b my-new-feature`.
-4. Make your modifications and write tests if applicable.
-5. Commit your changes: `git commit -am 'Add some feature'`.
-6. Push the branch to your forked repository: `git push origin my-new-feature`.
-7. Create a pull request on the main repository.
+- Run `pre-commit run --all-files` before pushing
+- Keep changes small and focused
+- Add tests for new behavior where possible
 
-We appreciate your contributions!
+License
+-------
 
-# License
+This project is provided under the GPL-3.0-or-later license. See
+[LICENSE](LICENSE) for full text.
 
-This project is licensed under the GNU License. See the [GNU](http://www.gnu.org/licenses/) file for more details.
+Acknowledgements & contact
+--------------------------
+
+Maintained by the robko01 organization. For questions or to report issues,
+please open an issue on the GitHub repository.
+

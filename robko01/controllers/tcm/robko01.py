@@ -24,7 +24,7 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
 import time
 
-from robko01.controllers.base_robko01 import BaseRobko01
+from robko01.controllers.base import Robko01Base
 
 #region File Attributes
 
@@ -55,7 +55,7 @@ __status__ = "Debug"
 
 #endregion
 
-class Robko01(BaseRobko01):
+class Robko01(Robko01Base):
     """This class is dedicated to control robot controller made by Orlin Dimitrov.
     """
 
@@ -65,16 +65,9 @@ class Robko01(BaseRobko01):
 
 #region Constructor
 
-    def __init__(self, communicator):
+    def __init__(self, **kwargs):
 
-        super().__init__()
-
-        if communicator is None:
-            raise ValueError("Communicator can not be None.")
-
-        self.__communicator = communicator
-        """Communicator
-        """
+        super().__init__(kwargs)
 
         self.__is_moving_cb = None
         """Is moving callback.
@@ -93,12 +86,12 @@ class Robko01(BaseRobko01):
     def connect(self):
         """Connect to the robot controller.
         """
-        self.__communicator.connect()
+        self._communicator.connect()
 
     def disconnect(self):
         """Disconnect from robot controller.
         """
-        self.__communicator.disconnect()
+        self._communicator.disconnect()
 
     def stop(self):
         """Stop robot motion execution.
@@ -127,8 +120,6 @@ class Robko01(BaseRobko01):
                         OpCode.to_text(response.opcode)))
             else:
                 raise InvalidPackage("Invalid package.")
-
-            time.sleep(self._sync_interval)
 
         return response
 
@@ -160,8 +151,6 @@ class Robko01(BaseRobko01):
             else:
                 raise InvalidPackage("Invalid package.")
 
-            time.sleep(self._sync_interval)
-
         return response
 
     def enable(self):
@@ -191,8 +180,6 @@ class Robko01(BaseRobko01):
                         OpCode.to_text(response.opcode)))
             else:
                 raise InvalidPackage("Invalid package.")
-
-            time.sleep(self._sync_interval)
 
         return response
 
@@ -224,15 +211,13 @@ class Robko01(BaseRobko01):
             else:
                 raise InvalidPackage("Invalid package.")
 
-            time.sleep(self._sync_interval)
-
         return response
 
-    def move_absolute(self, current_point):
+    def move_absolute(self, current_position):
         """Move absolute to next robot position.
 
         Args:
-            current_point (_type_): _description_
+            current_position (_type_): _description_
 
         Raises:
             InvalidOperationCode: Invalid operation code.
@@ -243,8 +228,8 @@ class Robko01(BaseRobko01):
             any: Communicator response.
         """
 
-        steps = current_point[0:12:2]
-        speed = max(current_point[1:12:2])
+        steps = current_position[0:12:2]
+        speed = max(current_position[1:12:2])
 
         d = abs(int(speed))
         q1 = round(steps[0], 0)
@@ -255,7 +240,7 @@ class Robko01(BaseRobko01):
         q6 = int(0)
         out = self.__digital_outputs
         command = f"@STEP {d},{q1},{q2},{q3},{q4+q5},{q4-q5},{q6},{out}\r".encode('ASCII')
-        self.__communicator.send_frame(command)
+        self._communicator.send_frame(command)
         print(f"Command: {command}")
 
     def is_moving(self):

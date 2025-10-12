@@ -22,10 +22,9 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
 """
 
-import time
 from struct import pack, unpack
 
-from robko01.controllers.base_robko01 import BaseRobko01
+from robko01.controllers.base import Robko01Base
 
 #region File Attributes
 
@@ -56,7 +55,7 @@ __status__ = "Debug"
 
 #endregion
 
-class Robko01(BaseRobko01):
+class Robko01(Robko01Base):
     """This class is dedicated to control robot controller made by Orlin Dimitrov.
     """
 
@@ -66,16 +65,9 @@ class Robko01(BaseRobko01):
 
 #region Constructor
 
-    def __init__(self, communicator):
-        super().__init__()
+    def __init__(self, **kwargs):
 
-
-        if communicator is None:
-            raise ValueError("Communicator can not be None.")
-
-        self.__communicator = communicator
-        """Communicator
-        """
+        super().__init__(kwargs)
 
         self.__is_moving_cb = None
         """Is moving callback.
@@ -90,12 +82,12 @@ class Robko01(BaseRobko01):
     def connect(self):
         """Connect to the robot controller.
         """
-        self.__communicator.connect()
+        self._communicator.connect()
 
     def disconnect(self):
         """Disconnect from robot controller.
         """
-        self.__communicator.disconnect()
+        self._communicator.disconnect()
 
         return
 
@@ -134,8 +126,6 @@ class Robko01(BaseRobko01):
             else:
                 raise InvalidPackage("Invalid package.")
 
-            time.sleep(self._sync_interval)
-
         return response
 
     def stop(self):
@@ -165,8 +155,6 @@ class Robko01(BaseRobko01):
                         OpCode.to_text(response.opcode)))
             else:
                 raise InvalidPackage("Invalid package.")
-
-            time.sleep(self._sync_interval)
 
         return response
 
@@ -198,8 +186,6 @@ class Robko01(BaseRobko01):
             else:
                 raise InvalidPackage("Invalid package.")
 
-            time.sleep(self._sync_interval)
-
         return response
 
     def enable(self):
@@ -229,8 +215,6 @@ class Robko01(BaseRobko01):
                         OpCode.to_text(response.opcode)))
             else:
                 raise InvalidPackage("Invalid package.")
-
-            time.sleep(self._sync_interval)
 
         return response
 
@@ -262,15 +246,13 @@ class Robko01(BaseRobko01):
             else:
                 raise InvalidPackage("Invalid package.")
 
-            time.sleep(self._sync_interval)
-
         return response
 
-    def move_relative(self, current_point):
+    def _move_relative_impl(self, current_position):
         """Move relative to next robot position.
 
         Args:
-            current_point (list): New robot position.
+            current_position (list): New robot position.
 
         Raises:
             InvalidOperationCode: Invalid operation code.
@@ -285,12 +267,12 @@ class Robko01(BaseRobko01):
         while True:
 
             payload = pack("<hhhhhhhhhhhh",\
-                int(current_point[0]), int(current_point[1]),\
-                int(current_point[2]), int(current_point[3]),\
-                int(current_point[4]), int(current_point[5]),\
-                int(current_point[6]), int(current_point[7]),\
-                int(current_point[8]), int(current_point[9]),\
-                int(current_point[10]), int(current_point[11]))
+                int(current_position[0]), int(current_position[1]),\
+                int(current_position[2]), int(current_position[3]),\
+                int(current_position[4]), int(current_position[5]),\
+                int(current_position[6]), int(current_position[7]),\
+                int(current_position[8]), int(current_position[9]),\
+                int(current_position[10]), int(current_position[11]))
 
             response = self.__pm.request(OpCode.MoveRelative.value, payload)
             if response.is_valid():
@@ -313,11 +295,25 @@ class Robko01(BaseRobko01):
 
         return response
 
-    def move_absolute(self, current_point):
+    def move_relative(self, *args):
+        if len(args) == 1 and isinstance(args[0], (list, tuple)):
+            return self._move_relative_impl(args[0])
+        elif len(args) == 3:
+            joint, delay, steps = args
+            point = [0] * 12
+            idx = int(joint) * 2
+            if 0 <= idx < 12:
+                point[idx] = steps
+                point[idx + 1] = delay
+            return self._move_relative_impl(point)
+        else:
+            raise TypeError("move_relative expects either positions list or (joint,delay,steps)")
+
+    def move_absolute(self, current_position):
         """Move absolute to next robot position.
 
         Args:
-            current_point (_type_): _description_
+            current_position (_type_): _description_
 
         Raises:
             InvalidOperationCode: Invalid operation code.
@@ -332,12 +328,12 @@ class Robko01(BaseRobko01):
         while True:
 
             payload = pack("<hhhhhhhhhhhh",\
-                int(current_point[0]), int(current_point[1]),\
-                int(current_point[2]), int(current_point[3]),\
-                int(current_point[4]), int(current_point[5]),\
-                int(current_point[6]), int(current_point[7]),\
-                int(current_point[8]), int(current_point[9]),\
-                int(current_point[10]), int(current_point[11]))
+                int(current_position[0]), int(current_position[1]),\
+                int(current_position[2]), int(current_position[3]),\
+                int(current_position[4]), int(current_position[5]),\
+                int(current_position[6]), int(current_position[7]),\
+                int(current_position[8]), int(current_position[9]),\
+                int(current_position[10]), int(current_position[11]))
 
             response = self.__pm.request(OpCode.MoveAbsolute.value, payload)
             if response.is_valid():
@@ -357,9 +353,6 @@ class Robko01(BaseRobko01):
                         OpCode.to_text(response.opcode)))
             else:
                 raise InvalidPackage("Invalid package.")
-
-
-            time.sleep(self._sync_interval)
 
         return response
 
@@ -397,8 +390,6 @@ class Robko01(BaseRobko01):
             else:
                 raise InvalidPackage("Invalid package.")
 
-            time.sleep(self._sync_interval)
-
         if self.__is_moving_cb is not None:
             self.__is_moving_cb(result)
 
@@ -435,8 +426,6 @@ class Robko01(BaseRobko01):
             else:
                 raise InvalidPackage("Invalid package.")
 
-            time.sleep(self._sync_interval)
-
         return position
 
     def get_inputs(self):
@@ -470,8 +459,6 @@ class Robko01(BaseRobko01):
                         OpCode.to_text(response.opcode)))
             else:
                 raise InvalidPackage("Invalid package.")
-
-            time.sleep(self._sync_interval)
 
         return value
 
@@ -509,15 +496,13 @@ class Robko01(BaseRobko01):
             else:
                 raise InvalidPackage("Invalid package.")
 
-            time.sleep(self._sync_interval)
-
         return arr
 
-    def move_speed(self, current_point):
+    def move_speed(self, current_position):
         """Move the robot in speed mode.
 
         Args:
-            current_point (list): New robot direction.
+            current_position (list): New robot direction.
 
         Raises:
             InvalidOperationCode: Invalid operation code.
@@ -547,12 +532,12 @@ class Robko01(BaseRobko01):
         while True:
 
             payload = pack("<hhhhhhhhhhhh",\
-                current_point[0], current_point[1],\
-                current_point[2], current_point[3],\
-                current_point[4], current_point[5],\
-                current_point[6], current_point[7],\
-                current_point[8], current_point[9],\
-                current_point[10], current_point[11])
+                current_position[0], current_position[1],\
+                current_position[2], current_position[3],\
+                current_position[4], current_position[5],\
+                current_position[6], current_position[7],\
+                current_position[8], current_position[9],\
+                current_position[10], current_position[11])
 
             response = self.__pm.request(OpCode.MoveSpeed.value, payload)
             if response.is_valid():
@@ -571,8 +556,6 @@ class Robko01(BaseRobko01):
                         OpCode.to_text(response.opcode)))
             else:
                 raise InvalidPackage("Invalid package.")
-
-            time.sleep(self._sync_interval)
 
         return response
 

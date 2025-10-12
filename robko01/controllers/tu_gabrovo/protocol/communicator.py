@@ -24,7 +24,17 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
 import time
 
-import serial
+# Lazy import for pyserial — only import when communicating with hardware.
+_serial = None
+def _get_serial():
+    global _serial
+    if _serial is None:
+        try:
+            import serial as _s
+        except Exception as exc:
+            raise ImportError("pyserial is required for TU-GAB protocol communicator: pip install pyserial") from exc
+        _serial = _s
+    return _serial
 
 from robko01.utils.logger import get_logger
 
@@ -80,6 +90,7 @@ class Communicator():
             #self.__port.port = "/dev/ttyS2"
 
         # Set the name.
+        serial = _get_serial()
         self.__port = serial.Serial(name)
         """Serial port.
         """
