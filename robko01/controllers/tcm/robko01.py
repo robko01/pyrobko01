@@ -25,6 +25,7 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 import time
 
 from robko01.controllers.base import Robko01Base
+from robko01.utils.logger import get_logger
 
 #region File Attributes
 
@@ -69,6 +70,8 @@ class Robko01(Robko01Base):
 
         super().__init__(kwargs)
 
+        self.__logger = get_logger(__name__)
+
         self.__is_moving_cb = None
         """Is moving callback.
         """
@@ -95,61 +98,15 @@ class Robko01(Robko01Base):
 
     def stop(self):
         """Stop robot motion execution.
-
-        Raises:
-            InvalidOperationCode: Invalid operation code.
-            InvalidStatusCode: Invalid status code.
-            InvalidPackage: Invalid package code.
-
-        Returns:
-            any: Communicator response.
         """
         response = None
-
-        while True:
-            response = self.__pm.request(OpCode.Stop.value)
-            if response.is_valid():
-                if response.status == StatusCode.Ok.value:
-                    if response.opcode == OpCode.Stop.value:
-                        break
-                    else:
-                        raise InvalidOperationCode("Operation code: {}".format(response.opcode))
-                else:
-                    raise InvalidStatusCode("Status: {}; OpCode: {}".format(\
-                        StatusCode.to_text(response.status),\
-                        OpCode.to_text(response.opcode)))
-            else:
-                raise InvalidPackage("Invalid package.")
 
         return response
 
     def disable(self):
-        """Stop robot motion execution.
-
-        Raises:
-            InvalidOperationCode: Invalid operation code.
-            InvalidStatusCode: Invalid status code.
-            InvalidPackage: Invalid package code.
-
-        Returns:
-            any: Communicator response.
+        """Disable robot motion execution.
         """
         response = None
-
-        while True:
-            response = self.__pm.request(OpCode.Disable.value)
-            if response.is_valid():
-                if response.status == StatusCode.Ok.value:
-                    if response.opcode == OpCode.Disable.value:
-                        break
-                    else:
-                        raise InvalidOperationCode("Operation code: {}".format(response.opcode))
-                else:
-                    raise InvalidStatusCode("Status: {}; OpCode: {}".format(\
-                        StatusCode.to_text(response.status),\
-                        OpCode.to_text(response.opcode)))
-            else:
-                raise InvalidPackage("Invalid package.")
 
         return response
 
@@ -166,70 +123,25 @@ class Robko01(Robko01Base):
         """
         response = None
 
-        while True:
-            response = self.__pm.request(OpCode.Enable.value)
-            if response.is_valid():
-                if response.status == StatusCode.Ok.value:
-                    if response.opcode == OpCode.Enable.value:
-                        break
-                    else:
-                        raise InvalidOperationCode("Operation code: {}".format(response.opcode))
-                else:
-                    raise InvalidStatusCode("Status: {}; OpCode: {}".format(\
-                        StatusCode.to_text(response.status),\
-                        OpCode.to_text(response.opcode)))
-            else:
-                raise InvalidPackage("Invalid package.")
-
         return response
 
     def clear(self):
         """Clear robot position.
 
-        Raises:
-            InvalidOperationCode: Invalid operation code.
-            InvalidStatusCode: Invalid status code.
-            InvalidPackage: Invalid package code.
-
-        Returns:
-            any: Communicator response.
         """
         response = None
-
-        while True:
-            response = self.__pm.request(OpCode.Clear.value)
-            if response.is_valid():
-                if response.status == StatusCode.Ok.value:
-                    if response.opcode == OpCode.Clear.value:
-                        break
-                    else:
-                        raise InvalidOperationCode("Operation code: {}".format(response.opcode))
-                else:
-                    raise InvalidStatusCode("Status: {}; OpCode: {}".format(\
-                        StatusCode.to_text(response.status),\
-                        OpCode.to_text(response.opcode)))
-            else:
-                raise InvalidPackage("Invalid package.")
-
+        command = "@CLEAR\r".encode('ASCII')
+        self.__logger.debug("Command: %s", command)
+        response = self._communicator.send_frame(command)
+        self.__logger.debug("Response: %s", response)
         return response
 
-    def move_absolute(self, current_position):
+    def move_absolute(self, target_position):
         """Move absolute to next robot position.
-
-        Args:
-            current_position (_type_): _description_
-
-        Raises:
-            InvalidOperationCode: Invalid operation code.
-            InvalidStatusCode: Invalid status code.
-            InvalidPackage: Invalid package code.
-
-        Returns:
-            any: Communicator response.
         """
 
-        steps = current_position[0:12:2]
-        speed = max(current_position[1:12:2])
+        steps = target_position[0:12:2]
+        speed = max(target_position[1:12:2])
 
         d = abs(int(speed))
         q1 = round(steps[0], 0)
@@ -240,22 +152,15 @@ class Robko01(Robko01Base):
         q6 = int(0)
         out = self.__digital_outputs
         command = f"@STEP {d},{q1},{q2},{q3},{q4+q5},{q4-q5},{q6},{out}\r".encode('ASCII')
-        self._communicator.send_frame(command)
-        print(f"Command: {command}")
+        self.__logger.debug("Command: %s", command)
+        response = self._communicator.send_frame(command)
+        self.__logger.debug("Response: %s", response)
+
+        return response
 
     def is_moving(self):
         """Is moving. Every bit represents an axis.
-
-        Raises:
-            InvalidOperationCode: Invalid operation code.
-            InvalidStatusCode: Invalid status code.
-            InvalidPackage: Invalid package code.
-
-
-        Returns:
-            int: Bit masking of robot motion.
         """
-        response = None
         result = 0
 
         if self.__is_moving_cb is not None:
@@ -265,30 +170,17 @@ class Robko01(Robko01Base):
 
     def current_position(self):
         """Current robot position.
-
-        Raises:
-            InvalidOperationCode: Invalid operation code.
-            InvalidStatusCode: Invalid status code.
-            InvalidPackage: Invalid package code.
-
-        Returns:
-            list: Robot positions.
         """
-        response = None
-        position = []
+        response = []
+        command = f"@READ\r".encode('ASCII')
+        self.__logger.debug("Command: %s", command)
+        response = self._communicator.send_frame(command)
+        self.__logger.debug("Response: %s", response)
 
-        return position
+        return response
 
     def get_inputs(self):
         """Current robot inputs.
-
-        Raises:
-            InvalidOperationCode: Invalid operation code.
-            InvalidStatusCode: Invalid status code.
-            InvalidPackage: Invalid package code.
-
-        Returns:
-            list: Inputs of the robot.
         """
 
         return self.__digital_inputs
@@ -298,13 +190,6 @@ class Robko01(Robko01Base):
 
         Args:
             value (int): Digital outputs bit mask.
-
-        Raises:
-            ValueError: The value: {value} should be bigger then 0.
-            ValueError: The value: {value} should be less then 255.
-
-        Returns:
-            object: None
         """
         response = None
 
