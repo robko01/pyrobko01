@@ -27,6 +27,11 @@ classifiers = [
 ]
 dependencies = [
     "pyserial",
+    "pygame",
+    "PySide6",
+    "PySide6-Addons",
+    "PySide6-Essentials",
+    "shiboken6",
 ]
 
 [project.optional-dependencies]
@@ -38,16 +43,6 @@ dev = [
     "mypy",
 ]
 
-gui = [
-    "PySide6",
-    "PySide6-Addons",
-    "PySide6-Essentials",
-    "shiboken6",
-]
-
-games = [
-    "pygame",
-]
 
 [project.scripts]
 robko01 = "robko01.__main__:main"

@@ -62,9 +62,14 @@ def long_description():
     with open('README.md', encoding='utf-8') as f:
         return f.read()
 
-install_requires = ["pygame", "pyserial",\
-               "PySide6", "PySide6-Addons",\
-               "PySide6-Essentials", "shiboken6"],
+install_requires = [
+    "pyserial",
+    "pygame",
+    "PySide6",
+    "PySide6-Addons",
+    "PySide6-Essentials",
+    "shiboken6",
+]
 
 setup(
     name="robko01",
@@ -81,7 +86,7 @@ setup(
     author=__author__,
     license=__license__,
     author_email=__email__,
-    python_requires='>=3.7',
+    python_requires='>=3.8',
     install_requires=install_requires,
     setup_requires=[],
     tests_require=[],
@@ -90,14 +95,16 @@ setup(
         'GitHub': 'https://github.com/robko01/pyrobko01',
     },
     classifiers=[
-        'Development Status :: 1 - Debug',
-        'Programming Language :: Python',
-        'Programming Language :: Python :: 3 :: Only',
+        'Development Status :: 4 - Beta',
         'Environment :: Console',
         'Intended Audience :: Developers',
-        'License :: GPLv3 License',
+        'License :: OSI Approved :: GNU General Public License v3 (GPLv3)',
+        'Programming Language :: Python :: 3',
+        'Programming Language :: Python :: 3.8',
+        'Programming Language :: Python :: 3.9',
+        'Programming Language :: Python :: 3.10',
         'Topic :: Software Development',
         'Topic :: Robot Programming'
     ],
-    package_data={'robko01.tasks.task_ui_qt.ui': ['*.ui']}
+    package_data={'robko01.tasks.task_ui_qt': ['*.ui']}
 )
