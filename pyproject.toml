@@ -58,7 +58,7 @@ license-files = ["LICENSE"]
 include = ["robko01", "robko01.*"]
 
 [tool.setuptools.package-data]
-"robko01.tasks.task_ui_qt" = ["*.ui"]
+"robko01.tasks.task_ui_qt.ui" = ["*.ui"]
 
 [tool.black]
 line-length = 88
