@@ -106,5 +106,5 @@ setup(
         'Topic :: Software Development',
         'Topic :: Robot Programming'
     ],
-    package_data={'robko01.tasks.task_ui_qt': ['*.ui']}
+    package_data={'robko01.tasks.task_ui_qt.ui': ['*.ui']}
 )
