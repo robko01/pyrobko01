@@ -71,6 +71,8 @@ class Robko01(Robko01Base):
 
         super().__init__()
 
+        self.__logger = get_logger(__name__)
+
         if communicator is None:
             raise ValueError("Communicator can not be None.")
 
@@ -81,8 +83,6 @@ class Robko01(Robko01Base):
         self.__current_position = [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0]
         """Current end-effector position.
         """
-
-        self.__logger = get_logger(__name__)
 
 #endregion
 
@@ -185,11 +185,11 @@ class Robko01(Robko01Base):
 
         return response
 
-    def _move_relative_impl(self, current_position):
+    def _move_relative_impl(self, target_position):
         """Move relative to next robot position.
 
         Args:
-            current_position (list): New robot position.
+            target_position (list): New robot position.
 
         Raises:
             InvalidOperationCode: Invalid operation code.
@@ -228,11 +228,11 @@ class Robko01(Robko01Base):
         else:
             raise TypeError("move_relative expects either positions list or (joint,delay,steps)")
 
-    def move_absolute(self, current_position):
+    def move_absolute(self, target_position):
         """Move absolute to next robot position.
 
         Args:
-            current_position (_type_): _description_
+            target_position (_type_): _description_
 
         Raises:
             InvalidOperationCode: Invalid operation code.
@@ -245,7 +245,7 @@ class Robko01(Robko01Base):
         response = None
         # TODO: Will explode.
 
-        self.__current_position = current_position
+        self.__current_position = target_position
 
         return response
 
@@ -313,11 +313,11 @@ class Robko01(Robko01Base):
 
         return response
 
-    def move_speed(self, current_position):
+    def move_speed(self, target_position):
         """Move the robot in speed mode.
 
         Args:
-            current_position (list): New robot direction.
+            target_position (list): New robot direction.
 
         Raises:
             InvalidOperationCode: Invalid operation code.

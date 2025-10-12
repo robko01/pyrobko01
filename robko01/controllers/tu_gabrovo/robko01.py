@@ -109,22 +109,40 @@ class Robko01(Robko01Base):
 #region Public methods
 
     def connect(self):
-        """Connect to the robot controller."""
+        """Connect to the robot controller.
+
+        This delegates to the communicator's `connect` method.
+        """
 
         self._communicator.connect()
 
     def disconnect(self):
-        """Disconnect from robot controller."""
+        """Disconnect from the robot controller.
+
+        Delegates to the communicator's `disconnect` method.
+        """
 
         self._communicator.disconnect()
 
     # Get revision of the board.
     def get_revision(self):
+        """Get board revision.
+
+        Sends the `?RV` command to request the firmware/hardware revision.
+        """
+
         command = "?RV"
         self._communicator.request(command)
 
     # Enable motor.
     def enable(self, joint=-1):
+        """Enable motor(s) on the controller.
+
+        Args:
+            joint (int, optional): Joint index to enable (0-5). Use -1 to
+                enable all joints. Special values `Joints.Pitch` and
+                `Joints.Roll` will enable left/right motors together.
+        """
 
         if joint == Joints.Pitch.value or joint == Joints.Roll.value:
             self.enable(Joints.LD.value)
@@ -141,6 +159,13 @@ class Robko01(Robko01Base):
 
     # Disable motor.
     def disable(self, joint=-1):
+        """Disable motor(s) on the controller.
+
+        Args:
+            joint (int, optional): Joint index to disable (0-5). Use -1 to
+                disable all joints. Special values `Joints.Pitch` and
+                `Joints.Roll` will disable left/right motors together.
+        """
 
         if joint == Joints.Pitch.value or joint == Joints.Roll.value:
             self.disable(Joints.LD.value)
@@ -157,19 +182,32 @@ class Robko01(Robko01Base):
 
     # Enable Elbow motor.
     def enable_elbow(self, state):
+        """Enable or disable elbow and gripper motors.
 
+        Args:
+            state (bool): If True enable elbow and gripper; if False disable.
+        """
+        response = None
         if state:
-            self.enable(Joints.Elbow.value)
+            response += self.enable(Joints.Elbow.value)
             time.sleep(0.05)
-            self.enable(Joints.Gripper.value)
+            response += self.enable(Joints.Gripper.value)
 
         else:
-            self.disable(Joints.Elbow.value)
+            response += self.disable(Joints.Elbow.value)
             time.sleep(0.05)
-            self.disable(Joints.Gripper.value)
+            response += self.disable(Joints.Gripper.value)
 
+        return response
+    
     # Start single motor.
     def start_single(self, joint=-1):
+        """Start a motor or all motors.
+
+        Args:
+            joint (int, optional): Joint index to start (0-5). Use -1 to start all.
+        """
+        response = None
         if joint <= 5 and joint >= 0:
             command = "{0}{1}".format("?S", joint)
             self._communicator.request(command)
@@ -179,7 +217,14 @@ class Robko01(Robko01Base):
 
     # Start multiple motors.
     def start_multi(self, states):
+        """Start multiple motors using a boolean state list.
 
+        Args:
+            states (sequence): Sequence with at least 6 boolean values. Each
+                value indicates whether the corresponding motor should be
+                started.
+        """
+        response = None
         if len(states) >= 6:
             indexes = ""
 
@@ -196,7 +241,12 @@ class Robko01(Robko01Base):
 
     # Stop motor.
     def stop(self, joint=-1):
+        """Stop a motor or all motors.
 
+        Args:
+            joint (int, optional): Joint index to stop (0-5). Use -1 to stop all.
+        """
+        response = None
         if joint <= 5 and joint >= 0:
             command = "{0}{1}".format("?P", joint)
             self._communicator.request(command)
@@ -207,7 +257,12 @@ class Robko01(Robko01Base):
 
     # Read motor state.
     def read(self, joint=-1):
+        """Read the state of a motor or all motors.
 
+        Args:
+            joint (int, optional): Joint index to query (0-5). Use -1 to query all.
+        """
+        response = None
         if joint <= 5 and joint >= 0:
             command = "{0}{1}".format("?R", joint)
             self._communicator.request(command)
@@ -218,56 +273,108 @@ class Robko01(Robko01Base):
 
     # Set delay of the motor.
     def set_delay(self, joint, delay):
+        """Set the delay (speed) parameter for a motor.
 
+        Args:
+            joint (int): Joint index (0-5).
+            delay (int): Delay value used by the controller.
+        """
+        response = None
         if joint <= 5 and joint >= 0:
             command = "{0}{1}:{2}".format("?T", joint, str(delay).zfill(4))
             self._communicator.request(command)
 
     # Set steps of the motor.
     def set_steps(self, joint, steps):
+        """Set the number of steps for a motor.
 
+        Args:
+            joint (int): Joint index (0-5).
+            steps (int): Number of steps to set for the motor.
+        """
+        response = None
         if joint <= 5 and joint >= 0:
             command = "{0}{1}:{2}".format("?A", joint, str(steps).zfill(4))
             self._communicator.request(command)
 
     # Direction of the motor.
     def set_direction(self, joint, direction):
+        """Set the rotation direction for a motor.
 
+        Args:
+            joint (int): Joint index (0-5).
+            direction (str): '+' for clockwise or '-' for counter-clockwise.
+        """
+        response = None
         if joint <= 5 and joint >= 0 and (direction == self.__CW or direction == self.__CCW):
             command = "{0}{1}:{2}".format("?D", joint, direction)
             self._communicator.request(command)
 
     # Move the motor in relative mode.
-    def move_relative(self, joint, delay, steps):
-
-        if joint == Joints.Elbow.value:
-
-            direction = ""
-            if steps >= 0:
-                direction = "+"
-            else:
-                direction = "-"
-            steps = abs(steps)
-
-            command = "{0}{1}:{2}{3}:{4}"\
-                .format("?F", 2, direction, str(steps).zfill(4), str(delay).zfill(4))
-            self._communicator.request(command)
-
     def _move_relative_impl(self, joint, delay, steps):
-        return self.move_relative(joint, delay, steps)
+        """Perform single-joint relative movement.
+
+        Args:
+            joint (int): Joint index to move.
+            delay (int): Delay parameter for the move.
+            steps (int): Number of steps (can be negative for direction).
+
+        Returns:
+            any: Communicator response.
+        """
+        response = None
+        # Special handling for Elbow -> uses joint index 2 and gripper coupling
+        if joint == Joints.Elbow.value:
+            direction = "+" if steps >= 0 else "-"
+            steps_val = abs(steps)
+            command = "{0}{1}:{2}{3}:{4}".format("?F", 2, direction, str(steps_val).zfill(4), str(delay).zfill(4))
+            self._communicator.request(command)
+            return None
+
+        # Pitch/Roll map to LD/RD pairs
+        if joint == Joints.Pitch.value:
+            self._move_relative_impl(Joints.LD.value, delay, steps)
+            time.sleep(0.05)
+            self._move_relative_impl(Joints.RD.value, delay, steps)
+            return None
+
+        if joint == Joints.Roll.value:
+            self._move_relative_impl(Joints.LD.value, delay, steps)
+            time.sleep(0.05)
+            self._move_relative_impl(Joints.RD.value, delay, -steps)
+            return None
+
+        # General joint handling
+        direction = "+" if steps >= 0 else "-"
+        steps_val = abs(steps)
+        command = "{0}{1}:{2}{3}:{4}".format("?F", joint, direction, str(steps_val).zfill(4), str(delay).zfill(4))
+        tmpdelay = int(abs(steps_val * delay * 2.5) / 1000)
+        time.sleep(tmpdelay)
+        self._communicator.request(command)
+        return None
 
     def move_relative(self, *args):
+        """Unified move_relative dispatcher.
+
+        Accepts either a single sequence of positions (the new, unified API)
+        or the old (joint, delay, steps) signature. Old-style calls are
+        forwarded to `_move_relative_impl`.
+
+        Args:
+            *args: Either (positions_list,) or (joint, delay, steps)
+
+        Raises:
+            TypeError: If the call signature is invalid.
+        """
+        response = None
         if len(args) == 1 and isinstance(args[0], (list, tuple)):
-            # positions list -> call move_relative for each joint found
             positions = args[0]
-            # if positions length is 12 (pairs of step/speed)
             if len(positions) >= 12:
-                # dispatch per-joint where non-zero
                 for joint_idx in range(6):
-                    steps = positions[joint_idx*2]
-                    delay = positions[joint_idx*2+1]
-                    if steps != 0 or delay != 0:
-                        self._move_relative_impl(joint_idx, delay, steps)
+                    steps_val = positions[joint_idx * 2]
+                    delay_val = positions[joint_idx * 2 + 1]
+                    if steps_val != 0 or delay_val != 0:
+                        self._move_relative_impl(joint_idx, delay_val, steps_val)
                 return None
             else:
                 raise TypeError("positions list must have at least 12 elements")
@@ -275,35 +382,6 @@ class Robko01(Robko01Base):
             return self._move_relative_impl(args[0], args[1], args[2])
         else:
             raise TypeError("move_relative expects either positions list or (joint,delay,steps)")
-            time.sleep(0.05)
-            command = "{0}{1}:{2}{3}:{4}"\
-                .format("?F", 5, direction, str(steps).zfill(4), str(delay).zfill(4))
-            self.move_relative(Joints.Gripper.value, delay, steps)
-
-        if joint == Joints.Pitch.value:
-            self.move_relative(Joints.LD.value, delay, steps)
-            time.sleep(0.05)
-            self.move_relative(Joints.RD.value, delay, steps)
-
-        elif joint == Joints.Roll.value:
-            self.move_relative(Joints.LD.value, delay, steps)
-            time.sleep(0.05)
-            self.move_relative(Joints.RD.value, delay, -steps)
-
-        else:
-            direction = ""
-            if steps >= 0:
-                direction = "+"
-            else:
-                direction = "-"
-            steps = abs(steps)
-
-            command = "{0}{1}:{2}{3}:{4}"\
-                .format("?F", joint, direction, str(steps).zfill(4), str(delay).zfill(4))
-            # delay sleep
-            tmpdelay = int(abs(steps * delay * 2.5) / 1000)
-            time.sleep(tmpdelay)
-            self._communicator.request(command)
 
     #def move_relative(self, command):
     #    self.move_relative(command.joint, command.delay, command.steps)
@@ -311,5 +389,22 @@ class Robko01(Robko01Base):
 #endregion
 
 def calc_delay(steps, delay, time_offset):
+    """Calculate a delay (in seconds) used between commands.
+
+    Parameters
+    ----------
+    steps : int
+        Number of steps to move.
+    delay : int
+        Delay parameter used by the controller.
+    time_offset : int
+        Additional offset (milliseconds) to add to the calculated delay.
+
+    Returns
+    -------
+    int
+        Delay value in seconds (rounded to integer) including the time_offset.
+    """
+
     tmpdelay = int(abs(steps * delay * 2.5) / 1000) + time_offset
     return tmpdelay

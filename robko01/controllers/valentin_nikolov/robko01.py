@@ -248,11 +248,11 @@ class Robko01(Robko01Base):
 
         return response
 
-    def _move_relative_impl(self, current_position):
+    def _move_relative_impl(self, target_position):
         """Move relative to next robot position.
 
         Args:
-            current_position (list): New robot position.
+            target_position (list): New robot position.
 
         Raises:
             InvalidOperationCode: Invalid operation code.
@@ -267,12 +267,12 @@ class Robko01(Robko01Base):
         while True:
 
             payload = pack("<hhhhhhhhhhhh",\
-                int(current_position[0]), int(current_position[1]),\
-                int(current_position[2]), int(current_position[3]),\
-                int(current_position[4]), int(current_position[5]),\
-                int(current_position[6]), int(current_position[7]),\
-                int(current_position[8]), int(current_position[9]),\
-                int(current_position[10]), int(current_position[11]))
+                int(target_position[0]), int(target_position[1]),\
+                int(target_position[2]), int(target_position[3]),\
+                int(target_position[4]), int(target_position[5]),\
+                int(target_position[6]), int(target_position[7]),\
+                int(target_position[8]), int(target_position[9]),\
+                int(target_position[10]), int(target_position[11]))
 
             response = self.__pm.request(OpCode.MoveRelative.value, payload)
             if response.is_valid():
@@ -309,11 +309,11 @@ class Robko01(Robko01Base):
         else:
             raise TypeError("move_relative expects either positions list or (joint,delay,steps)")
 
-    def move_absolute(self, current_position):
+    def move_absolute(self, target_position):
         """Move absolute to next robot position.
 
         Args:
-            current_position (_type_): _description_
+            target_position (_type_): _description_
 
         Raises:
             InvalidOperationCode: Invalid operation code.
@@ -328,12 +328,12 @@ class Robko01(Robko01Base):
         while True:
 
             payload = pack("<hhhhhhhhhhhh",\
-                int(current_position[0]), int(current_position[1]),\
-                int(current_position[2]), int(current_position[3]),\
-                int(current_position[4]), int(current_position[5]),\
-                int(current_position[6]), int(current_position[7]),\
-                int(current_position[8]), int(current_position[9]),\
-                int(current_position[10]), int(current_position[11]))
+                int(target_position[0]), int(target_position[1]),\
+                int(target_position[2]), int(target_position[3]),\
+                int(target_position[4]), int(target_position[5]),\
+                int(target_position[6]), int(target_position[7]),\
+                int(target_position[8]), int(target_position[9]),\
+                int(target_position[10]), int(target_position[11]))
 
             response = self.__pm.request(OpCode.MoveAbsolute.value, payload)
             if response.is_valid():
@@ -498,11 +498,11 @@ class Robko01(Robko01Base):
 
         return arr
 
-    def move_speed(self, current_position):
+    def move_speed(self, target_position):
         """Move the robot in speed mode.
 
         Args:
-            current_position (list): New robot direction.
+            target_position (list): New robot direction.
 
         Raises:
             InvalidOperationCode: Invalid operation code.
@@ -532,12 +532,12 @@ class Robko01(Robko01Base):
         while True:
 
             payload = pack("<hhhhhhhhhhhh",\
-                current_position[0], current_position[1],\
-                current_position[2], current_position[3],\
-                current_position[4], current_position[5],\
-                current_position[6], current_position[7],\
-                current_position[8], current_position[9],\
-                current_position[10], current_position[11])
+                target_position[0], target_position[1],\
+                target_position[2], target_position[3],\
+                target_position[4], target_position[5],\
+                target_position[6], target_position[7],\
+                target_position[8], target_position[9],\
+                target_position[10], target_position[11])
 
             response = self.__pm.request(OpCode.MoveSpeed.value, payload)
             if response.is_valid():
