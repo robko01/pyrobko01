@@ -159,18 +159,20 @@ controller = ControllerFactory.create(
 
 ## Version Management
 
-Version is managed in `pyproject.toml`:
+Single source of truth is `robko01/version.py`:
 
-```toml
-[project]
-version = "1.0.0"
+```python
+__version__ = "1.0.2"
 ```
+
+Keep `pyproject.toml` in sync with the value in `robko01/version.py`.
 
 **Before merging to main:**
 
-1. Update version number in `pyproject.toml`
-2. Update CHANGELOG.md with changes (if present)
-3. Request user approval before merging
+1. Update version number in `robko01/version.py`
+2. Update `pyproject.toml` to match
+3. Update CHANGELOG.md with changes (if present)
+4. Request user approval before merging
 
 ## Best Practices
 
