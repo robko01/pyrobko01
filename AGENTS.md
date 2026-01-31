@@ -28,11 +28,16 @@ pytest tests/test_specific.py   # Run specific test file
 
 # Linting and formatting
 black .                          # Format code
+black --check .                  # Check formatting only
 ruff check .                     # Lint code
 ruff check . --fix               # Auto-fix lint issues
+isort .                          # Sort imports
+isort --check-only .             # Check import order only
 mypy robko01/                    # Type checking
 
 # Pre-commit hooks
+pip install pre-commit           # Install pre-commit (once)
+pre-commit install               # Set up git hooks (once)
 pre-commit run --all-files       # Run all pre-commit checks
 ```
 
@@ -226,4 +231,26 @@ For tests requiring physical hardware:
 1. Mark them with `@pytest.mark.hardware`
 2. Skip by default: `pytest -m "not hardware"`
 3. Ask the user to run manually when needed
+
+### Testing Without Hardware
+
+Tests are designed to avoid touching real serial ports or joysticks. When testing code that normally talks to hardware:
+
+- Use mocking with `pytest-mock`
+- Use the `dummy` communicator/controller for integration tests
+- Create lightweight dummy communicators using `BaseCommunicator`
+
+## CI/CD
+
+The repository includes GitHub Actions workflows:
+
+- **CI workflow**: `.github/workflows/ci.yml` runs tests and linters across multiple Python versions
+- **Pre-commit hooks**: Configured in `.pre-commit-config.yaml`
+
+## Contributing Guidelines
+
+- Follow Black/ruff/isort rules (pre-commit enforces these automatically)
+- Make small, well-scoped commits
+- Open PRs against the `dev` branch first
+- Do not modify `pyserial` dependency without discussion (kept for backward compatibility)
 
