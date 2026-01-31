@@ -176,26 +176,91 @@ version = "1.0.0"
 
 ### Git Workflow
 
-- Branching: `main` is production-ready, `dev` is integration; feature branches are created from `dev`.
-- Branch naming: `feature/<short-description>` for features, `fix/<short-description>` for bug fixes.
-- Commit flow:
-  1. `git checkout dev`
-  2. `git checkout -b feature/<short-description>`
-  3. Stage and commit with a descriptive message.
-  4. Test the feature before merging; if hardware-dependent, ask the user to test manually.
-  5. Ask for approval before merging the feature into `dev`.
-- Merging: always use `--no-ff` to preserve history in GitLens visualization.
-  - Merge feature into `dev`: `git merge feature/<short-description> --no-ff -m "Merge feature/<short-description> into dev"`
-  - Merge `dev` into `main`: `git merge dev --no-ff -m "Merge dev into main"`
-- Push/cleanup: push `main` and `dev`; do not delete merged feature branches unless the user explicitly asks.
+#### Branching Strategy
+- **main**: Production-ready code, only receives merges from dev
+- **dev**: Development branch, created from main, where integration happens
+- **feature branches**: Created from dev for each new feature or change
 
-### Commit Message Format
+#### Branch Naming
+- Feature branches: `feature/<short-description>` (e.g., `feature/add-dimmer-support`)
+- Bug fixes: `fix/<short-description>` (e.g., `fix/mac-validation`)
+
+#### Commit Workflow (Step by Step)
+
+1. **Checkout dev branch:**
+   ```bash
+   git checkout dev
+   ```
+
+2. **Create feature branch from dev:**
+   ```bash
+   git checkout -b feature/<short-description>
+   ```
+
+3. **Stage and commit changes with descriptive message:**
+   ```bash
+   git add <file>
+   git commit -m "$(cat <<'EOF'
+   Short summary of changes
+
+   - Detailed bullet point 1
+   - Detailed bullet point 2
+   - Detailed bullet point 3
+
+   Co-Authored-By: Claude Opus 4.5 <noreply@anthropic.com>
+   EOF
+   )"
+   ```
+
+4. **Test the feature before merging:**
+   - For software-only changes: Run build and verify functionality
+   - For hardware-dependent changes: **ASK the user to test manually**
+   - Never merge untested code into dev
+
+5. **ASK before merging to dev:**
+   - Always ask the user for approval before merging feature into dev
+   - Example: "Feature is ready and committed. May I merge to dev and main?"
+
+6. **Merge feature branch to dev (with --no-ff to preserve branch history):**
+   ```bash
+   git checkout dev
+   git merge feature/<short-description> --no-ff -m "Merge feature/<short-description> into dev"
+   ```
+
+7. **Merge dev to main (with --no-ff to preserve branch history):**
+   ```bash
+   git checkout main
+   git merge dev --no-ff -m "Merge dev into main"
+   ```
+
+8. **Push both branches and clean up:**
+   ```bash
+   git push origin main
+   git push origin dev
+   git branch -d feature/<short-description>
+   ```
+
+#### Important: Always Use --no-ff
+
+Always use `--no-ff` (no fast-forward) when merging to create merge commits. This preserves the branch topology and makes the history visible in GitLens:
 
 ```
-Short summary in imperative mood (<= 50 chars)
+*   Merge dev into main
+|\
+| *   Merge feature/xyz into dev
+| |\
+| | * Actual commit message
+| |/
+```
 
-- Bullet point for key change 1
-- Bullet point for key change 2
+#### Commit Message Format
+
+```
+Short summary (imperative mood, max 50 chars)
+
+- Bullet point describing change 1
+- Bullet point describing change 2
+- Bullet point describing change 3
 
 Co-Authored-By: Claude Opus 4.5 <noreply@anthropic.com>
 ```
