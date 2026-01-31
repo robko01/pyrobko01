@@ -1,11 +1,12 @@
-# robko01 — Robko 01 control library
+# robko01 -- Robko 01 control library
 
 Robko01 (robko01) is a small, test-friendly Python library and command-line
 tool for controlling Robko 01-compatible robot controllers. It provides:
 
 - Communicators: serial, TCP, UDP (pluggable implementations)
 - Controller implementations for several firmwares
-- Small UI tasks and utilities for testing and development
+- UI tasks and utilities for testing and development
+- Kinematics helpers and test coverage
 
 This repository aims to make it easy to script robot motions, run simple UIs,
 and develop new controller backends without requiring hardware during testing.
@@ -13,8 +14,10 @@ and develop new controller backends without requiring hardware during testing.
 Table of contents
 -----------------
 
+- Requirements
 - Installation (Windows / Linux / macOS)
-- Quick examples (programmatic dummy, CLI serial, trajectory runner)
+- Quick examples
+- Testing
 - Contributing
 - License
 
@@ -22,11 +25,11 @@ Requirements
 ------------
 
 - Python 3.8 or newer
-- Required runtime dependencies:
+- Runtime dependencies:
     - `pyserial` for serial communicators
-    - `pygame` for joystick/support and game-related tasks
+    - `pygame` for joystick support and game-related tasks
     - `PySide6`, `PySide6-Addons`, `PySide6-Essentials`, and `shiboken6` for
-        the Qt-based UI tasks
+      the Qt-based UI tasks
 
 If you plan to develop or run tests, install the `dev` extras to get linters
 and test dependencies.
@@ -78,8 +81,8 @@ Notes
 -----
 
 - If the package is uploaded to PyPI in the future, you could install with
-    `python -m pip install robko01`.
-- Extras: `.[dev]` — check `pyproject.toml` for available extras.
+  `python -m pip install robko01`.
+- Extras: `.[dev]` - check `pyproject.toml` for available extras.
 
 Uninstall
 ---------
@@ -99,7 +102,7 @@ python3 -m pip uninstall robko01
 Quick examples
 --------------
 
-1) Programmatic example (safe to run without hardware — uses `dummy`)
+1) Programmatic example (safe to run without hardware - uses `dummy`)
 
 ```py
 from robko01.controllers.controller_factory import ControllerFactory
@@ -194,6 +197,12 @@ python -m pip install -e .[dev]
 pytest -q
 ```
 
+Command-line entry point
+------------------------
+
+The package installs a `robko01` console entry point that runs
+`robko01.__main__`. Use `robko01 --help` to see available options.
+
 Contributing
 ------------
 
@@ -218,4 +227,3 @@ Acknowledgements & contact
 
 Maintained by the robko01 organization. For questions or to report issues,
 please open an issue on the GitHub repository.
-
