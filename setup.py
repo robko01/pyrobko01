@@ -24,6 +24,8 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
 from setuptools import find_packages, setup
 
+from robko01.version import __version__
+
 #region File Attributes
 
 __author__ = "Orlin Dimitrov"
@@ -38,9 +40,6 @@ __credits__ = []
 __license__ = "GPLv3"
 """License
 @see http://www.gnu.org/licenses/"""
-
-__version__ = "1.0.0"
-"""Version of the file."""
 
 __maintainer__ = "Orlin Dimitrov"
 """Name of the maintainer."""
@@ -69,6 +68,7 @@ install_requires = [
     "PySide6-Addons",
     "PySide6-Essentials",
     "shiboken6",
+    "pymodbus",
 ]
 
 setup(
@@ -80,7 +80,7 @@ setup(
         ]
     },
     version=__version__,
-    description="Robko 01 control library.",
+    description="Robko 01 control library and utilities.",
     long_description=long_description(),
     long_description_content_type='text/markdown',
     author=__author__,
@@ -106,5 +106,5 @@ setup(
         'Topic :: Software Development',
         'Topic :: Robot Programming'
     ],
-    package_data={'robko01.tasks.task_ui_qt.ui': ['*.ui']}
+    package_data={"robko01.tasks.task_ui_qt.ui": ["*.ui"]},
 )
