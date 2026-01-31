@@ -32,6 +32,7 @@ dependencies = [
     "PySide6-Addons",
     "PySide6-Essentials",
     "shiboken6",
+    "pymodbus",
 ]
 
 [project.optional-dependencies]
