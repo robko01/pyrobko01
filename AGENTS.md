@@ -182,7 +182,7 @@ version = "1.0.0"
 - Merging: always use `--no-ff` to preserve history in GitLens visualization.
   - Merge feature into `dev`: `git merge feature/<short-description> --no-ff -m "Merge feature/<short-description> into dev"`
   - Merge `dev` into `main`: `git merge dev --no-ff -m "Merge dev into main"`
-- Push/cleanup: push `main` and `dev`, then delete the merged feature branch.
+- Push/cleanup: push `main` and `dev`; do not delete merged feature branches unless the user explicitly asks.
 
 ### Commit Message Format
 
