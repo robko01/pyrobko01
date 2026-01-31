@@ -206,9 +206,8 @@ The package installs a `robko01` console entry point that runs
 Contributing
 ------------
 
-We welcome contributions. See [CONTRIBUTING.md](CONTRIBUTING.md) for a
-step-by-step developer setup guide (virtualenv, installing dev extras,
-pre-commit hooks and running linters/tests).
+We welcome contributions. See [AGENTS.md](AGENTS.md) for developer setup,
+coding standards, and contribution guidelines.
 
 If you're preparing a PR please:
 
