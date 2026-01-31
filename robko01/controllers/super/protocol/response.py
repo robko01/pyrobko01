@@ -22,8 +22,8 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
 """
 
-from robko01.controllers.orlin369.protocol.frame_indexes import FrameIndexes
-from robko01.controllers.orlin369.protocol.package_type import PackageType
+from robko01.controllers.super.protocol.frame_indexes import FrameIndexes
+from robko01.controllers.super.protocol.package_type import PackageType
 
 #region File Attributes
 
@@ -74,7 +74,7 @@ class Response:
 
     __FRAME_STATIC_FIELD_OFFSET = 5
     __FRAME_MIN_PAYLOAD_SIZE = 0
-    __FRAME_MAX_PAYLOAD_SIZE = 27
+    __FRAME_MAX_PAYLOAD_SIZE = 26
 
 #endregion
 
@@ -134,17 +134,18 @@ class Response:
         if self.is_valid():
             self.__size = int(self.__frame[FrameIndexes.Size.value])
 
-            if (self.__size - 2) > 0:
+            payload_len = self.__size - 4
+            if payload_len > 0:
                 self.__payload = []
 
-                for index in range(self.__size - 2):
+                for index in range(payload_len):
                     self.__payload.append(self.__frame[index + self.__FRAME_STATIC_FIELD_OFFSET])
 
     def __is_valid_container(self):
         return self.__frame is not None
 
     def __is_valid_len(self):
-        return len(self.__frame) > 6
+        return len(self.__frame) >= 7
 
     def __is_valid_sentinel(self):
         return self.__frame[FrameIndexes.Sentinel.value] == 0xAA
@@ -153,8 +154,11 @@ class Response:
         return self.__frame[FrameIndexes.PackageType.value] == PackageType.Response.value
 
     def __is_valid_size(self):
-        return (int(self.__frame[FrameIndexes.Size.value]) > self.__FRAME_MIN_PAYLOAD_SIZE) and \
-                (int(self.__frame[FrameIndexes.Size.value]) < self.__FRAME_MAX_PAYLOAD_SIZE)
+        size = int(self.__frame[FrameIndexes.Size.value])
+        if size < 4:
+            return False
+        payload_len = size - 4
+        return (payload_len >= self.__FRAME_MIN_PAYLOAD_SIZE) and (payload_len <= self.__FRAME_MAX_PAYLOAD_SIZE)
 
 #endregion
 

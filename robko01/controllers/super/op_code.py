@@ -107,6 +107,26 @@ class OpCode(Enum):
     """Move in speed mode.
     """
 
+    SetRobotID = 13
+    """Set robot identifier.
+    """
+
+    GetRobotID = 14
+    """Get robot identifier.
+    """
+
+    MoveInterpolated = 17
+    """Move with interpolated joint motion.
+    """
+
+    MoveIK = 18
+    """Inverse kinematics move.
+    """
+
+    GetInterpolatorState = 19
+    """Get interpolator state and progress.
+    """
+
 #endregion
 
 #region Public Static Methods
@@ -159,6 +179,21 @@ class OpCode(Enum):
 
         elif code == OpCode.MoveSpeed.value:
             text = "Move Speed"
+
+        elif code == OpCode.SetRobotID.value:
+            text = "Set Robot ID"
+
+        elif code == OpCode.GetRobotID.value:
+            text = "Get Robot ID"
+
+        elif code == OpCode.MoveInterpolated.value:
+            text = "Move Interpolated"
+
+        elif code == OpCode.MoveIK.value:
+            text = "Move IK"
+
+        elif code == OpCode.GetInterpolatorState.value:
+            text = "Get Interpolator State"
 
         else:
             text = f"Not implemented: {code}"

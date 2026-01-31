@@ -25,14 +25,14 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 import time
 from struct import pack, unpack
 
-from robko01.controllers.orlin369.protocol.package_manager import PackageManager
-from robko01.controllers.orlin369.op_code import OpCode
-from robko01.controllers.orlin369.status_code import StatusCode
+from robko01.controllers.super.protocol.package_manager import PackageManager
+from robko01.controllers.super.op_code import OpCode
+from robko01.controllers.super.status_code import StatusCode
 from robko01.controllers.base import Robko01Base
-from robko01.controllers.orlin369.exceptions.controller_is_busy import ControllerIsBusy
-from robko01.controllers.orlin369.exceptions.invalid_package import InvalidPackage
-from robko01.controllers.orlin369.exceptions.invalid_operation_code import InvalidOperationCode
-from robko01.controllers.orlin369.exceptions.invalid_status_code import InvalidStatusCode
+from robko01.controllers.super.exceptions.controller_is_busy import ControllerIsBusy
+from robko01.controllers.super.exceptions.invalid_package import InvalidPackage
+from robko01.controllers.super.exceptions.invalid_operation_code import InvalidOperationCode
+from robko01.controllers.super.exceptions.invalid_status_code import InvalidStatusCode
 
 #region File Attributes
 
@@ -64,8 +64,7 @@ __status__ = "Debug"
 #endregion
 
 class Robko01(Robko01Base):
-    """This class is dedicated to control robot controller made by Orlin Dimitrov.
-    """
+    """SUPER protocol controller implementation."""
 
 #region Attributes
 
@@ -517,6 +516,68 @@ class Robko01(Robko01Base):
             raise InvalidPackage("Invalid package.")
 
         return response
+
+    def move_interpolated(self, j1=0, j2=0, j3=0, j4=0, j5=0, j6=0) -> int:
+        """Interpolated joint move. Returns duration in ms."""
+        payload = pack("<hhhhhh", int(j1), int(j2), int(j3), int(j4), int(j5), int(j6))
+        response = self.__pm.request(OpCode.MoveInterpolated.value, payload)
+        if response.is_valid():
+            if response.status == StatusCode.Ok.value:
+                if response.opcode == OpCode.MoveInterpolated.value:
+                    if response.payload and len(response.payload) >= 4:
+                        return int(unpack("<I", bytes(response.payload[:4]))[0])
+                    return -1
+                else:
+                    raise InvalidOperationCode("Operation code: {}".format(response.opcode))
+            elif response.status == StatusCode.Busy.value:
+                raise ControllerIsBusy("The controller is busy.")
+            else:
+                raise InvalidStatusCode("Status: {}; OpCode: {}".format(\
+                    StatusCode.to_text(response.status),\
+                    OpCode.to_text(response.opcode)))
+        else:
+            raise InvalidPackage("Invalid package.")
+
+    def move_ik(self, x=0, y=0, z=0, pitch=0, roll=0, gripper=0) -> int:
+        """Inverse kinematics move. Returns duration in ms."""
+        payload = pack("<hhhhhh", int(x), int(y), int(z), int(pitch), int(roll), int(gripper))
+        response = self.__pm.request(OpCode.MoveIK.value, payload)
+        if response.is_valid():
+            if response.status == StatusCode.Ok.value:
+                if response.opcode == OpCode.MoveIK.value:
+                    if response.payload and len(response.payload) >= 4:
+                        return int(unpack("<I", bytes(response.payload[:4]))[0])
+                    return -1
+                else:
+                    raise InvalidOperationCode("Operation code: {}".format(response.opcode))
+            elif response.status == StatusCode.Busy.value:
+                raise ControllerIsBusy("The controller is busy.")
+            else:
+                raise InvalidStatusCode("Status: {}; OpCode: {}".format(\
+                    StatusCode.to_text(response.status),\
+                    OpCode.to_text(response.opcode)))
+        else:
+            raise InvalidPackage("Invalid package.")
+
+    def get_interpolator_state(self):
+        """Get interpolator state and progress."""
+        response = self.__pm.request(OpCode.GetInterpolatorState.value)
+        if response.is_valid():
+            if response.status == StatusCode.Ok.value:
+                if response.opcode == OpCode.GetInterpolatorState.value:
+                    if response.payload and len(response.payload) >= 5:
+                        state = int(response.payload[0])
+                        progress = unpack("<f", bytes(response.payload[1:5]))[0]
+                        return {"state": state, "progress": progress}
+                    return {"state": 0, "progress": 0.0}
+                else:
+                    raise InvalidOperationCode("Operation code: {}".format(response.opcode))
+            else:
+                raise InvalidStatusCode("Status: {}; OpCode: {}".format(\
+                    StatusCode.to_text(response.status),\
+                    OpCode.to_text(response.opcode)))
+        else:
+            raise InvalidPackage("Invalid package.")
 
     def move_relative_base(self, steps, speed):
         """Move axis in relative mode.
