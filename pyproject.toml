@@ -4,7 +4,7 @@ build-backend = "setuptools.build_meta"
 
 [project]
 name = "robko01"
-version = "1.0.1"
+version = "1.0.2"
 description = "Robko 01 control library and utilities."
 readme = "README.md"
 requires-python = ">=3.8"

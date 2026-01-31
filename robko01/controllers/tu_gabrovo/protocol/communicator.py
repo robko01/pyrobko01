@@ -24,7 +24,7 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
 import time
 
-# Lazy import for pyserial — only import when communicating with hardware.
+# Lazy import for pyserial ??? only import when communicating with hardware.
 _serial = None
 def _get_serial():
     global _serial
@@ -53,8 +53,6 @@ __license__ = "GPLv3"
 """License
 @see http://www.gnu.org/licenses/"""
 
-__version__ = "1.0.0"
-"""Version of the file."""
 
 __maintainer__ = "Orlin Dimitrov"
 """Name of the maintainer."""

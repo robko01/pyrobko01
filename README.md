@@ -197,6 +197,12 @@ python -m pip install -e .[dev]
 pytest -q
 ```
 
+Version
+-------
+
+The package version is defined in `robko01/version.py` and mirrored in
+`pyproject.toml`.
+
 Command-line entry point
 ------------------------
 

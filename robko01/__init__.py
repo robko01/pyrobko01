@@ -37,8 +37,7 @@ __license__ = "GPLv3"
 """License
 @see http://www.gnu.org/licenses/"""
 
-__version__ = "1.0.0"
-"""Version of the file."""
+from robko01.version import __version__
 
 __maintainer__ = "Orlin Dimitrov"
 """Name of the maintainer."""
