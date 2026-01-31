@@ -187,6 +187,9 @@ Keep `pyproject.toml` in sync with the value in `robko01/version.py`.
 - Feature branches: `feature/<short-description>` (e.g., `feature/add-dimmer-support`)
 - Bug fixes: `fix/<short-description>` (e.g., `fix/mac-validation`)
 
+#### Feature Branch First
+- Make all code/documentation changes on a feature branch. Do not commit directly to `dev`.
+
 #### Commit Workflow (Step by Step)
 
 1. **Checkout dev branch:**
