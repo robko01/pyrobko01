@@ -2,14 +2,14 @@ import pytest
 from unittest.mock import MagicMock
 
 from robko01.controllers.dummy.robko01 import Robko01 as DummyRob
-from robko01.controllers.orlin369.robko01 import Robko01 as OrlinRob
+from robko01.controllers.super.robko01 import Robko01 as SuperRob
 from robko01.controllers.valentin_nikolov.robko01 import Robko01 as ValRob
 from robko01.controllers.tu_gabrovo.robko01 import Robko01 as TugRob
 
 
 @pytest.mark.parametrize(
     "controller_cls",
-    [DummyRob, OrlinRob, ValRob, TugRob],
+    [DummyRob, SuperRob, ValRob, TugRob],
 )
 def test_move_relative_supports_both_signatures(controller_cls):
     # create instance without running __init__ to avoid communicator wiring

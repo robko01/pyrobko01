@@ -152,7 +152,7 @@ from robko01.controllers.controller_factory import ControllerFactory
 controller = ControllerFactory.create(
     interface="serial",
     port="COM1",
-    cname="orlin369",
+    cname="super",
     timeout=1.0
 )
 ```
