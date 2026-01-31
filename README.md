@@ -133,7 +133,7 @@ port name (for Linux use `/dev/ttyUSB0` or similar).
 from robko01.controllers.controller_factory import ControllerFactory
 
 port = "COM1" # You should change it according to your setup.
-cname = "orlin369"
+cname = "super"
 interface = "serial"
 
 # Controller

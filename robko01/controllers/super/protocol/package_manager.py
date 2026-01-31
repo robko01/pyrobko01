@@ -22,8 +22,8 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
 """
 
-from robko01.controllers.orlin369.protocol.package_type import PackageType
-from robko01.controllers.orlin369.protocol.response import Response
+from robko01.controllers.super.protocol.package_type import PackageType
+from robko01.controllers.super.protocol.response import Response
 
 #region File Attributes
 
@@ -115,11 +115,11 @@ class PackageManager:
         # Request byte.
         req_frame.append(PackageType.Request.value)
 
-        # Length of the frame.
+        # Length of the frame (OpCode + Payload + Checksum(2))
         if payload is not None:
-            req_frame.append(len(payload) + 1)
+            req_frame.append(len(payload) + 3)
         else:
-            req_frame.append(1)
+            req_frame.append(3)
 
         # Operation code.
         req_frame.append(opcode)
@@ -159,11 +159,11 @@ class PackageManager:
         # Request byte.
         res_frame += chr(PackageType.Response)
 
-        # Length of the frame.
+        # Length of the frame (OpCode + Status + Payload + Checksum(2))
         if payload is not None:
-            res_frame += chr(len(payload) + 2)
+            res_frame += chr(len(payload) + 4)
         else:
-            res_frame += chr(2)
+            res_frame += chr(4)
 
         # Operation code.
         res_frame += chr(opcode.value)

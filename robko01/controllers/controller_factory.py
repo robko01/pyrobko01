@@ -26,7 +26,8 @@ from robko01.communicators.serial.communicator import Communicator as SerCom
 from robko01.communicators.tcp.communicator import Communicator as TCPCom
 from robko01.communicators.udp.communicator import Communicator as UDPCom
 
-from robko01.controllers.orlin369.robko01 import Robko01 as Orko01
+from robko01.controllers.super.robko01 import Robko01 as Super01
+from robko01.controllers.tcm.robko01 import Robko01 as Tcm01
 from robko01.controllers.tu_gabrovo.protocol.package_manager import PackageManager as GabkoPM
 from robko01.controllers.tu_gabrovo.robko01 import Robko01 as Gabko01
 from robko01.controllers.dummy.robko01 import Robko01 as Dummy
@@ -116,8 +117,13 @@ class ControllerFactory:
         elif controller_name == "dummy":
             controller = Dummy(communicator=communicator)
 
-        elif controller_name == "orlin369":
-            controller = Orko01(communicator=communicator)
+        elif controller_name == "super":
+            controller = Super01(communicator=communicator)
+
+        elif controller_name == "tcm":
+            if communicator is None:
+                raise ValueError("TCM controller requires a serial communicator.")
+            controller = Tcm01(communicator=communicator)
 
         elif controller_name == "tugab":
             controller = Gabko01(communicator=GabkoPM(kwargs))

@@ -24,7 +24,7 @@ def test_create_orlin_with_mocked_serial(monkeypatch):
 
     monkeypatch.setattr(cf, 'SerCom', DummyComm)
 
-    ctrl = ControllerFactory.create(interface="serial", port="COM5", cname="orlin369", timeout="1")
+    ctrl = ControllerFactory.create(interface="serial", port="COM5", cname="super", timeout="1")
     assert ctrl is not None
     assert hasattr(ctrl, "move_relative")
 

@@ -104,7 +104,7 @@ def main():
     parser.add_argument("--port", type=str, default="10182", help="Serial port or TCP port.")
     parser.add_argument("--host", type=str, default="remote1.robko01.loc", help="Host/IP of the robot.")
     parser.add_argument("--interface", type=str, default="udp", help="Controller type")
-    parser.add_argument("--cname", type=str, default="orlin369", help="Controller type")
+    parser.add_argument("--cname", type=str, default="super", help="Controller type")
     parser.add_argument("--timeout", type=str, default="10", help="Timeout seconds")
 
     # Take arguments.
